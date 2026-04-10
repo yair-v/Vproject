@@ -1,0 +1,187 @@
+:root {
+  font-family: Arial, sans-serif;
+  color: #132033;
+  background: #eef3f8;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; direction: rtl; background: #eef3f8; }
+button, input, select { font: inherit; }
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 100vh;
+  gap: 16px;
+  padding: 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(10, 26, 47, 0.08);
+}
+
+.sidebar {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-header h1,
+.toolbar h2,
+.form-card h3 { margin: 0 0 6px; }
+.sidebar-header p,
+.toolbar p { margin: 0; color: #607086; line-height: 1.5; }
+
+.project-form,
+.toolbar-actions,
+.row-form,
+.form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.project-form input,
+.toolbar-actions input,
+.toolbar-actions select,
+.row-form input,
+.row-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d7dfeb;
+  border-radius: 12px;
+  background: #f9fbfd;
+}
+.project-form button,
+.toolbar-actions button,
+.file-button,
+.form-actions button,
+.row-actions button,
+.project-item {
+  border: none;
+  border-radius: 12px;
+  background: #1f62ff;
+  color: #fff;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.file-button { display: inline-flex; align-items: center; }
+.secondary { background: #8a99ad !important; }
+.danger { background: #d64e4e !important; }
+
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+}
+.project-item {
+  background: #f4f7fb;
+  color: #1a2b45;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.project-item.active { background: #1f62ff; color: #fff; }
+.project-item span { opacity: 0.85; font-size: 13px; }
+
+.main-panel { display: flex; flex-direction: column; gap: 16px; }
+.toolbar {
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.content-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 16px;
+  min-height: 0;
+}
+.form-card, .table-card { padding: 18px; }
+.row-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field span { font-weight: bold; color: #44556e; }
+.form-actions { grid-column: 1 / -1; }
+.error-box {
+  margin-top: 12px;
+  background: #fff0f0;
+  color: #a12626;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.lookup { position: relative; }
+.lookup-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #d7dfeb;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(13, 28, 51, 0.12);
+  z-index: 20;
+  overflow: hidden;
+}
+.lookup-item,
+.lookup-create {
+  width: 100%;
+  text-align: right;
+  background: #fff;
+  color: #1a2b45;
+  border: none;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.lookup-item:hover,
+.lookup-create:hover { background: #f3f7ff; }
+
+.table-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.table-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.pagination { display: flex; align-items: center; gap: 10px; }
+.table-wrap {
+  overflow: auto;
+  border: 1px solid #e1e8f0;
+  border-radius: 14px;
+}
+
+table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+th, td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #edf1f6;
+  text-align: right;
+  white-space: nowrap;
+}
+thead th { position: sticky; top: 0; background: #f8fbff; z-index: 1; }
+.empty { text-align: center; color: #72839a; padding: 28px 10px; }
+.row-actions { display: flex; gap: 8px; }
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: bold;
+}
+.status.pending { background: #fff4db; color: #9a6a00; }
+.status.completed { background: #def7e8; color: #117544; }
+
+@media (max-width: 1200px) {
+  .content-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .app-shell { grid-template-columns: 1fr; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .row-form { grid-template-columns: 1fr; }
+}
