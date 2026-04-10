@@ -220,6 +220,21 @@ function validateAndNormalizeRow(payload) {
     if (!data.targetDate) data.targetDate = todayDbDate();
     if (!data.completedDate) data.completedDate = todayDbDate();
   }
+  const branchNumber = String(data.branchNumber || '').trim();
+  const positionNumber = String(data.positionNumber || '').trim();
+
+  // מספר סניף
+  if (branchNumber && !/^\d{1,5}$/.test(branchNumber)) {
+    throw new Error('מספר סניף חייב להיות מספר עד 5 ספרות');
+  }
+
+  // מספר עמדה
+  if (positionNumber && !/^\d{1,5}$/.test(positionNumber)) {
+    throw new Error('מספר עמדה חייב להיות מספר עד 5 ספרות');
+  }
+
+  data.branchNumber = branchNumber;
+  data.positionNumber = positionNumber;
 
   return data;
 }
