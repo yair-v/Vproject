@@ -40,9 +40,7 @@ function validatePreviewRow(mappedRow) {
         errors.push('מספר עמדה חייב להיות מספר עד 5 ספרות');
     }
 
-    const isCompleted =
-        status === 'completed' ||
-        status === 'בוצע';
+    const isCompleted = status === 'completed' || status === 'בוצע';
 
     if (isCompleted && !installerName) {
         errors.push('בסטטוס בוצע חייב שם מתקין');
@@ -172,7 +170,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack, onImpo
 
                         <div className="import-hero-actions">
                             <button type="button" className="secondary-btn" onClick={onBack}>
-                                חזרה למערכת
+                                חזרה לדף שורות
                             </button>
 
                             <label className="primary-btn upload-btn">
@@ -204,7 +202,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack, onImpo
                                     <strong>{mappedCount}/{FIELD_DEFS.length}</strong>
                                 </div>
                                 <div className="glass-card stat-box">
-                                    <span>שורות עם שגיאות בתצוגה</span>
+                                    <span>שורות עם שגיאות</span>
                                     <strong>{invalidPreviewCount}</strong>
                                 </div>
                             </section>
