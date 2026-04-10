@@ -80,6 +80,8 @@ export default function App() {
       if (selectedProjectId && !data.some((project) => project.id === selectedProjectId)) {
         setSelectedProjectId(data[0]?.id || null);
       }
+
+      setError('');
     } catch (err) {
       setError(err.message);
     }
@@ -145,7 +147,11 @@ export default function App() {
     if (!projectName.trim()) return;
 
     try {
-      const created = await api.createProject({ name: projectName, description: projectDescription });
+      const created = await api.createProject({
+        name: projectName,
+        description: projectDescription
+      });
+
       await loadProjects();
       setSelectedProjectId(created.id);
       setProjectName('');
@@ -174,6 +180,7 @@ export default function App() {
           total: prev.total + 1,
           rows: [created, ...prev.rows].slice(0, prev.pageSize)
         }));
+
         setProjects((prev) =>
           prev.map((project) =>
             project.id === selectedProjectId
@@ -211,6 +218,7 @@ export default function App() {
 
     try {
       await api.deleteRow(selectedProjectId, rowId);
+
       setRowsData((prev) => ({
         ...prev,
         total: Math.max(0, prev.total - 1),
@@ -224,6 +232,8 @@ export default function App() {
             : project
         )
       );
+
+      setError('');
     } catch (err) {
       setError(err.message);
     }
@@ -240,6 +250,7 @@ export default function App() {
       a.download = `project-${selectedProjectId}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
+      setError('');
     } catch (err) {
       setError(err.message);
     }
@@ -276,10 +287,11 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <aside className="sidebar card">
+      <aside className="sidebar card glass-card">
         <div className="sidebar-header">
+          <div className="section-chip">Workspace</div>
           <h1>פרויקטים</h1>
-          <p>מערכת קלה ומהירה, עם עדכון שורות בלי רענון מלא של הרשימה.</p>
+          <p>מערכת מהירה לניהול פרויקטים קטנים, עם טפסים, טבלה, ייבוא מתקדם וייצוא.</p>
         </div>
 
         <form className="project-form" onSubmit={saveProject}>
@@ -293,30 +305,38 @@ export default function App() {
             onChange={(e) => setProjectDescription(e.target.value)}
             placeholder="תיאור"
           />
-          <button type="submit">צור פרויקט</button>
+          <button type="submit" className="primary-btn">צור פרויקט</button>
         </form>
 
         <div className="project-list">
-          {projects.map((project) => (
-            <button
-              key={project.id}
-              type="button"
-              className={`project-item ${project.id === selectedProjectId ? 'active' : ''}`}
-              onClick={() => {
-                setSelectedProjectId(project.id);
-                resetForm();
-              }}
-            >
-              <strong>{project.name}</strong>
-              <span>{project.rows_count || 0} שורות</span>
-            </button>
-          ))}
+          {projects.length ? (
+            projects.map((project) => (
+              <button
+                key={project.id}
+                type="button"
+                className={`project-item ${project.id === selectedProjectId ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedProjectId(project.id);
+                  resetForm();
+                }}
+              >
+                <div className="project-item-title">{project.name}</div>
+                <div className="project-item-meta">
+                  <span>{project.rows_count || 0} שורות</span>
+                  {project.description ? <small>{project.description}</small> : null}
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="empty-sidebar-state">עדיין אין פרויקטים</div>
+          )}
         </div>
       </aside>
 
       <main className="main-panel">
-        <section className="toolbar card">
+        <section className="toolbar card glass-card">
           <div>
+            <div className="section-chip">Overview</div>
             <h2>{selectedProject?.name || 'בחר פרויקט'}</h2>
             <p>{selectedProject?.description || 'ניהול מהיר של פרויקטים קטנים עם חיפוש, ייבוא וייצוא.'}</p>
           </div>
@@ -334,19 +354,24 @@ export default function App() {
               <option value="completed">בוצע</option>
             </select>
 
-            <button type="button" onClick={openAdvancedImport}>
-              ייבוא אקסל מתקדם
+            <button type="button" className="secondary-btn" onClick={openAdvancedImport}>
+              ייבוא Pro
             </button>
 
-            <button type="button" onClick={handleExport}>
+            <button type="button" className="secondary-btn" onClick={handleExport}>
               ייצוא אקסל
             </button>
           </div>
         </section>
 
         <section className="content-grid">
-          <section className="card form-card">
-            <h3>{editingRowId ? 'עריכת שורה' : 'הוספת שורה'}</h3>
+          <section className="card form-card glass-card">
+            <div className="card-title-row">
+              <div>
+                <div className="section-chip">Editor</div>
+                <h3>{editingRowId ? 'עריכת שורה' : 'הוספת שורה'}</h3>
+              </div>
+            </div>
 
             <form className="row-form" onSubmit={saveRow}>
               <LookupInput
@@ -450,10 +475,30 @@ export default function App() {
                 </select>
               </label>
 
+              <div className="segmented-status">
+                <button
+                  type="button"
+                  className={form.status === 'pending' ? 'active' : ''}
+                  onClick={() => updateForm('status', 'pending')}
+                >
+                  ממתין
+                </button>
+                <button
+                  type="button"
+                  className={form.status === 'completed' ? 'active' : ''}
+                  onClick={() => updateForm('status', 'completed')}
+                >
+                  בוצע
+                </button>
+              </div>
+
               <div className="form-actions">
-                <button type="submit">{editingRowId ? 'שמור שינויים' : 'הוסף שורה'}</button>
+                <button type="submit" className="primary-btn">
+                  {editingRowId ? 'שמור שינויים' : 'הוסף שורה'}
+                </button>
+
                 {editingRowId && (
-                  <button type="button" className="secondary" onClick={resetForm}>
+                  <button type="button" className="secondary-btn" onClick={resetForm}>
                     ביטול
                   </button>
                 )}
@@ -463,9 +508,13 @@ export default function App() {
             {error && <div className="error-box">{error}</div>}
           </section>
 
-          <section className="card table-card">
+          <section className="card table-card glass-card">
             <div className="table-meta">
-              <strong>{rowsData.total} שורות</strong>
+              <div>
+                <div className="section-chip">Data</div>
+                <strong>{rowsData.total} שורות</strong>
+              </div>
+
               <div className="pagination">
                 <button
                   type="button"
