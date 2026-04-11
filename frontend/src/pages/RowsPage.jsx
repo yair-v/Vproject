@@ -83,9 +83,9 @@ export default function RowsPage({
               <p>{selectedProject?.description || 'ניהול שורות, טפסים, חיפוש ופעולות מהירות.'}</p>
             </div>
             <div className="toolbar-actions">
-              <button type="button" className="secondary-btn" onClick={goToImport}>ייבוא Pro</button>
+              <button type="button" className="secondary-btn" onClick={goToImport}>ייבוא אקסל</button>
               <button type="button" className="secondary-btn" onClick={handleExport}>ייצוא אקסל</button>
-              
+
             </div>
           </section>
           <AppBrand />

@@ -101,6 +101,7 @@ textarea:focus {
   display: grid;
   gap: 18px;
   min-width: 0;
+  overflow: visible;
 }
 
 .single-panel {
@@ -113,6 +114,7 @@ textarea:focus {
   border-radius: var(--radius);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
+  overflow: visible;
 }
 
 .glass-card {
@@ -203,6 +205,7 @@ textarea:focus {
   flex-direction: column;
   gap: 18px;
   min-height: calc(100vh - 36px);
+  overflow: visible;
 }
 
 .sidebar-header h1 {
@@ -270,7 +273,7 @@ textarea:focus {
 
 .projects-layout {
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
   gap: 18px;
 }
 
@@ -283,11 +286,13 @@ textarea:focus {
 .settings-panel {
   padding: 18px;
   min-width: 0;
+  overflow: visible;
 }
 
-.projects-pro-grid {
+.projects-pro-grid,
+.dashboard-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 14px;
 }
 
@@ -317,7 +322,7 @@ textarea:focus {
 
 .with-clock {
   display: grid;
-  grid-template-columns: 1fr 150px;
+  grid-template-columns: minmax(0, 1fr) 120px;
   gap: 14px;
   align-items: center;
 }
@@ -367,7 +372,7 @@ textarea:focus {
 }
 
 .project-summary-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 220px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 200px;
 }
 
 .stat-box {
@@ -447,12 +452,6 @@ textarea:focus {
   gap: 18px;
 }
 
-.dashboard-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
 .dashboard-ranking-list {
   display: grid;
   gap: 10px;
@@ -479,6 +478,7 @@ textarea:focus {
   grid-template-columns: 430px 1fr;
   gap: 18px;
   min-width: 0;
+  overflow: visible;
 }
 
 .table-top-pro {
@@ -566,7 +566,7 @@ textarea:focus {
 
 .table-wrap,
 .iphone-table-wrap {
-  overflow: auto;
+  overflow: visible;
   border-radius: 18px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.03);
@@ -574,6 +574,7 @@ textarea:focus {
 
 .pro-table-wrap {
   max-height: 68vh;
+  overflow: auto;
 }
 
 table {
@@ -677,7 +678,9 @@ tbody tr:hover {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: radial-gradient(circle at top center, rgba(93, 170, 255, 0.18), transparent 24%), linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
+  background:
+    radial-gradient(circle at top center, rgba(93, 170, 255, 0.18), transparent 24%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-soft) 100%);
 }
 
 .import-phone-frame,
@@ -725,6 +728,7 @@ tbody tr:hover {
   background: linear-gradient(180deg, var(--panel), var(--panel-strong));
   backdrop-filter: blur(20px);
   padding: 20px;
+  overflow: visible;
 }
 
 .import-status-card {
@@ -773,6 +777,7 @@ tbody tr:hover {
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: visible;
 }
 
 .preview-row-error {
@@ -832,17 +837,12 @@ tbody tr:hover {
   position: absolute;
   inset-inline: 0;
   top: calc(100% + 8px);
-
   z-index: 9999;
-  /* 🔥 הכי חשוב */
-
   background: var(--panel-strong);
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
-
   max-height: 260px;
-  /* שלא יתפוצץ */
   overflow-y: auto;
 }
 
@@ -856,8 +856,107 @@ tbody tr:hover {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+.lookup-option:last-child {
+  border-bottom: none;
+}
+
 .lookup-option:hover {
   background: rgba(255, 255, 255, 0.06);
+}
+
+.smart-select {
+  position: relative;
+  z-index: 1000;
+}
+
+.smart-select.open {
+  z-index: 9999;
+}
+
+.smart-select.disabled {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.smart-select-trigger {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 12px 14px;
+  text-align: right;
+}
+
+.smart-select-value {
+  color: var(--text);
+  text-align: right;
+}
+
+.smart-select-value.placeholder {
+  color: var(--muted);
+}
+
+.smart-select-chevron {
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.smart-select-dropdown {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 8px);
+  z-index: 9999;
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.smart-select-search {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 12px 14px;
+}
+
+.smart-select-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.smart-select-item {
+  width: 100%;
+  text-align: right;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.smart-select-item:last-child {
+  border-bottom: none;
+}
+
+.smart-select-item:hover,
+.smart-select-item.active {
+  background: rgba(77, 163, 255, 0.2);
+}
+
+.smart-select-empty {
+  padding: 12px 14px;
+  color: var(--muted);
+  text-align: center;
 }
 
 @keyframes spin {
@@ -865,85 +964,6 @@ tbody tr:hover {
     transform: rotate(360deg);
   }
 }
-
-@media (max-width: 1280px) {
-
-  .content-grid,
-  .projects-layout,
-  .dashboard-layout,
-  .hero-with-brand,
-  .hero-with-brand-import,
-  .settings-tables-grid,
-  .project-summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .app-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .sidebar {
-    min-height: auto;
-  }
-
-  .projects-pro-grid,
-  .dashboard-cards-grid,
-  .pro-mapping-grid,
-  .import-stats-grid,
-  .stats-strip {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .app-brand {
-    justify-content: center;
-  }
-
-  .with-clock {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 760px) {
-
-  .app-shell,
-  .import-screen,
-  .login-screen {
-    padding: 12px;
-  }
-
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .toolbar-actions {
-    width: 100%;
-  }
-
-  .projects-pro-grid,
-  .dashboard-cards-grid,
-  .pro-mapping-grid,
-  .import-stats-grid,
-  .stats-strip {
-    grid-template-columns: 1fr;
-  }
-
-  .import-phone-frame,
-  .login-card {
-    border-radius: 28px;
-    padding: 12px;
-  }
-
-  .iphone-pill {
-    width: 120px;
-    height: 24px;
-  }
-
-  .app-brand-logo {
-    width: 110px;
-  }
-}
-
 
 .settings-btn-pro {
   border: none;
@@ -963,19 +983,17 @@ tbody tr:hover {
 .project-card-shell {
   padding: 0;
   overflow: visible;
-  /* 🔥 חובה */
 }
 
 .project-card-main {
   width: 100%;
-  border: none;
   background: transparent;
   color: inherit;
+  border: none;
   display: grid;
-  grid-template-columns: 1fr 150px;
+  grid-template-columns: minmax(0, 1fr) 120px;
   gap: 14px;
   align-items: center;
-  text-align: right;
   padding: 18px;
 }
 
@@ -994,8 +1012,6 @@ tbody tr:hover {
   font-weight: 700;
 }
 
-
-/* Floating global menu */
 .floating-menu {
   position: fixed;
   inset-inline-start: 20px;
@@ -1061,46 +1077,6 @@ tbody tr:hover {
   box-shadow: var(--shadow);
 }
 
-.projects-pro-grid,
-.dashboard-cards-grid {
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-}
-
-.projects-layout {
-  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
-}
-
-.with-clock {
-  grid-template-columns: minmax(0, 1fr) 120px;
-}
-
-.project-card-shell {
-  padding: 0;
-  overflow: hidden;
-}
-
-.project-card-main {
-  width: 100%;
-  background: transparent;
-  color: inherit;
-  border: none;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 120px;
-  gap: 14px;
-  align-items: center;
-  padding: 18px;
-}
-
-.project-card-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 18px 18px;
-}
-
-.project-summary-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 200px;
-}
-
 .login-screen {
   min-height: 100vh;
   display: grid;
@@ -1113,27 +1089,92 @@ tbody tr:hover {
   padding: 24px;
 }
 
-.settings-btn-pro {
-  border-radius: 16px;
-  padding: 12px 18px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #04111d;
-  box-shadow: 0 10px 30px rgba(77, 163, 255, 0.28);
-}
+@media (max-width: 1280px) {
 
-@media (max-width: 1100px) {
+  .content-grid,
+  .projects-layout,
+  .dashboard-layout,
+  .hero-with-brand,
+  .hero-with-brand-import,
+  .settings-tables-grid,
+  .project-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    min-height: auto;
+  }
+
+  .projects-pro-grid,
+  .dashboard-cards-grid,
+  .pro-mapping-grid,
+  .import-stats-grid,
+  .stats-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .app-brand {
+    justify-content: center;
+  }
 
   .with-clock,
   .project-card-main {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 1100px) {
   .project-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
+
+  .app-shell,
+  .import-screen,
+  .login-screen {
+    padding: 12px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+  }
+
+  .projects-pro-grid,
+  .dashboard-cards-grid,
+  .pro-mapping-grid,
+  .import-stats-grid,
+  .stats-strip,
+  .project-summary-grid,
+  .projects-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .import-phone-frame,
+  .login-card {
+    border-radius: 28px;
+    padding: 12px;
+  }
+
+  .iphone-pill {
+    width: 120px;
+    height: 24px;
+  }
+
+  .app-brand-logo {
+    width: 110px;
+  }
+
   .floating-menu {
     inset-inline-start: 12px;
     inset-block-end: 12px;
@@ -1142,10 +1183,5 @@ tbody tr:hover {
   .floating-menu-toggle {
     width: 56px;
     height: 56px;
-  }
-
-  .project-summary-grid,
-  .projects-layout {
-    grid-template-columns: 1fr;
   }
 }
