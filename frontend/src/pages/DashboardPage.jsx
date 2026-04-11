@@ -19,9 +19,8 @@ export default function DashboardPage({ projects, loadingProjects, error, openPr
               <p>תצוגת על של המערכת, סטטיסטיקות, פרויקטים אחרונים והתקדמות.</p>
             </div>
             <div className="toolbar-actions">
-              <button type="button" className="settings-btn-pro" onClick={openSettings}>הגדרות</button>
               <button type="button" className="primary-btn" onClick={openProjectsPage}>מעבר לדף פרויקטים</button>
-              <span className="rows-badge">{user.username} / {user.role}</span>
+              
             </div>
           </section>
           <AppBrand />

@@ -99,10 +99,9 @@ function calcProgress(total, completed) {
 
 function getAuthUser(req) {
   const id = Number(req.header('x-user-id') || 0);
-  const username = req.header('x-user-name') || '';
-  const role = req.header('x-user-role') || '';
-  if (!id || !username || !role) return null;
-  return { id, username, role };
+  const role = String(req.header('x-user-role') || '').trim();
+  if (!id || !role) return null;
+  return { id, role };
 }
 
 function requireRole(allowedRoles = []) {

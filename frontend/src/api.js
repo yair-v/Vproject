@@ -7,7 +7,6 @@ function getAuthHeaders() {
     if (!user) return {};
     return {
       'x-user-id': String(user.id),
-      'x-user-name': String(user.username || ''),
       'x-user-role': String(user.role || '')
     };
   } catch {

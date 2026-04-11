@@ -85,7 +85,7 @@ export default function RowsPage({
             <div className="toolbar-actions">
               <button type="button" className="secondary-btn" onClick={goToImport}>ייבוא Pro</button>
               <button type="button" className="secondary-btn" onClick={handleExport}>ייצוא אקסל</button>
-              <span className="rows-badge">{user.username} / {user.role}</span>
+              
             </div>
           </section>
           <AppBrand />

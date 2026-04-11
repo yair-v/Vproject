@@ -6,6 +6,7 @@ import ImportExcelPage from './pages/ImportExcelPage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
+import FloatingMenu from './components/FloatingMenu';
 
 function useDebouncedValue(value, delay = 300) {
   const [debounced, setDebounced] = useState(value);
@@ -123,7 +124,30 @@ export default function App() {
   }
 
   function resetForm() { setForm(EMPTY_FORM()); setEditingRowId(null); }
-  function logout() { localStorage.removeItem('user'); setUser(null); }
+  function logout() {
+    localStorage.removeItem('user');
+    setUser(null);
+    window.location.hash = '/dashboard';
+  }
+
+  function goBack() {
+    const hash = window.location.hash || '#/dashboard';
+    if (hash.startsWith('#/project/') && hash.endsWith('/import')) {
+      if (route.projectId) {
+        goToProjectRows(route.projectId);
+        return;
+      }
+    }
+    if (hash === '#/settings') {
+      goToDashboard();
+      return;
+    }
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    goToDashboard();
+  }
 
   async function createProject(e) {
     e.preventDefault();
@@ -191,11 +215,28 @@ async function saveRow(e) {
     } catch (err) { setError(err.message); }
   }
 
+
+  function withMenu(content) {
+    return (
+      <>
+        {content}
+        <FloatingMenu
+          onHome={goToDashboard}
+          onProjects={goToProjects}
+          onSettings={goToSettings}
+          onBack={goBack}
+          onLogout={logout}
+          user={user}
+        />
+      </>
+    );
+  }
+
   if (!user) return <LoginPage onLogin={setUser} />;
 
-  if (route.page === 'import' && route.projectId) return <ImportExcelPage projectId={route.projectId} projectName={selectedProject?.name || ''} onBack={() => goToProjectRows(route.projectId)} />;
-  if (route.page === 'settings') return <SettingsPage user={user} onBack={goToDashboard} onLogout={logout} displaySettings={displaySettings} setDisplaySettings={setDisplaySettings} />;
-  if (route.page === 'rows' && route.projectId) return <RowsPage projects={projects} selectedProject={selectedProject} rowsData={rowsData} loadingRows={loadingRows} loadingProjects={loadingProjects} error={error} search={search} setSearch={setSearch} status={status} setStatus={setStatus} form={form} setForm={setForm} editingRowId={editingRowId} updateForm={updateForm} resetForm={resetForm} saveRow={saveRow} startEdit={startEdit} deleteRow={deleteRow} loadRows={loadRows} handleExport={handleExport} goToProjects={goToProjects} goToImport={() => goToProjectImport(route.projectId)} setSelectedProject={(projectId) => { resetForm(); goToProjectRows(projectId); }} refreshKey={refreshKey} openSettings={goToSettings} user={user} />;
-  if (route.page === 'projects') return <ProjectsPage projects={projects} loadingProjects={loadingProjects} error={error} projectName={projectName} setProjectName={setProjectName} projectDescription={projectDescription} setProjectDescription={setProjectDescription} createProject={createProject} openProject={goToProjectRows} openSettings={goToSettings} deleteProject={deleteProject} user={user} />;
-  return <DashboardPage projects={projects} loadingProjects={loadingProjects} error={error} openProjectsPage={goToProjects} openProjectRows={goToProjectRows} openSettings={goToSettings} user={user} />;
+  if (route.page === 'import' && route.projectId) return withMenu(<ImportExcelPage projectId={route.projectId} projectName={selectedProject?.name || ''} onBack={() => goToProjectRows(route.projectId)} />);
+  if (route.page === 'settings') return withMenu(<SettingsPage user={user} onBack={goToDashboard} onLogout={logout} displaySettings={displaySettings} setDisplaySettings={setDisplaySettings} />);
+  if (route.page === 'rows' && route.projectId) return withMenu(<RowsPage projects={projects} selectedProject={selectedProject} rowsData={rowsData} loadingRows={loadingRows} loadingProjects={loadingProjects} error={error} search={search} setSearch={setSearch} status={status} setStatus={setStatus} form={form} setForm={setForm} editingRowId={editingRowId} updateForm={updateForm} resetForm={resetForm} saveRow={saveRow} startEdit={startEdit} deleteRow={deleteRow} loadRows={loadRows} handleExport={handleExport} goToProjects={goToProjects} goToImport={() => goToProjectImport(route.projectId)} setSelectedProject={(projectId) => { resetForm(); goToProjectRows(projectId); }} refreshKey={refreshKey} openSettings={goToSettings} user={user} />);
+  if (route.page === 'projects') return withMenu(<ProjectsPage projects={projects} loadingProjects={loadingProjects} error={error} projectName={projectName} setProjectName={setProjectName} projectDescription={projectDescription} setProjectDescription={setProjectDescription} createProject={createProject} openProject={goToProjectRows} openSettings={goToSettings} deleteProject={deleteProject} user={user} />);
+  return withMenu(<DashboardPage projects={projects} loadingProjects={loadingProjects} error={error} openProjectsPage={goToProjects} openProjectRows={goToProjectRows} openSettings={goToSettings} user={user} />);
 }

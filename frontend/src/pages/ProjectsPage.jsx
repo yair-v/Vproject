@@ -26,8 +26,7 @@ export default function ProjectsPage({
               <p>יצירה, בחירה וכניסה לניהול מפורט של כל פרויקט במסך נפרד.</p>
             </div>
             <div className="toolbar-actions">
-              <button type="button" className="settings-btn-pro" onClick={openSettings}>הגדרות</button>
-              <span className="rows-badge">{user.username} / {user.role}</span>
+              
             </div>
           </section>
           <AppBrand />
