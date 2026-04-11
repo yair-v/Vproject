@@ -1,5 +1,6 @@
 import LookupInput from '../components/LookupInput';
 import { api } from '../api';
+import AppBrand from '../components/AppBrand';
 
 export default function RowsPage({
     projects,
@@ -69,6 +70,8 @@ export default function RowsPage({
             </aside>
 
             <main className="main-panel">
+                <AppBrand />
+
                 <section className="toolbar card glass-card">
                     <div>
                         <div className="section-chip">Rows Management</div>

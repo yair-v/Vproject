@@ -1,3 +1,5 @@
+import AppBrand from '../components/AppBrand';
+
 export default function DashboardPage({
     projects,
     loadingProjects,
@@ -18,6 +20,8 @@ export default function DashboardPage({
     return (
         <div className="app-shell app-shell-projects">
             <main className="main-panel single-panel">
+                <AppBrand />
+
                 <section className="toolbar card glass-card">
                     <div>
                         <div className="section-chip">Dashboard Pro</div>

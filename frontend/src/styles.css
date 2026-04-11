@@ -106,6 +106,24 @@ textarea:focus {
   backdrop-filter: blur(18px);
 }
 
+.app-brand {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 0 2px;
+}
+
+.app-brand-logo {
+  width: 180px;
+  max-width: 70%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 30px rgba(0, 120, 255, 0.25));
+  opacity: 0.98;
+  user-select: none;
+  pointer-events: none;
+}
+
 .section-chip {
   display: inline-flex;
   align-items: center;
@@ -904,5 +922,9 @@ tbody tr:hover {
   .iphone-pill {
     width: 120px;
     height: 24px;
+  }
+
+  .app-brand-logo {
+    width: 130px;
   }
 }

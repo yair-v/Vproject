@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { api } from '../api';
+import AppBrand from '../components/AppBrand';
 
 const FIELD_DEFS = [
     { key: 'customer_name', label: 'לקוח', required: false },
@@ -161,6 +162,8 @@ export default function ImportExcelPage({ projectId, projectName, onBack, onImpo
                 </div>
 
                 <div className="import-phone-content">
+                    <AppBrand />
+
                     <section className="import-hero-card">
                         <div className="section-chip">Import Pro</div>
                         <h1>ייבוא אקסל מתקדם</h1>
