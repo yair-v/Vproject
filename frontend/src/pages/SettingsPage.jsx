@@ -206,7 +206,16 @@ function UsersTab({ user }) {
                     emptyText="אין רמות"
                   />
                 </td>
-                <td>{String(item.created_at || '').slice(0, 10)}</td>
+                <td>
+                  {item.created_at
+                    ? new Date(item.created_at).toLocaleDateString('he-IL', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })
+                    : ''}
+                </td>
+                <td></td>
                 <td>
                   <div className="row-actions">
                     <button type="button" onClick={() => changePassword(item)}>
