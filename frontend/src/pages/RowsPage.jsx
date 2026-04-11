@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import LookupInput from '../components/LookupInput';
 import { api } from '../api';
 import AppBrand from '../components/AppBrand';
+import ProjectClock from '../components/ProjectClock';
 
 export default function RowsPage({
     projects,
@@ -25,10 +27,38 @@ export default function RowsPage({
     handleExport,
     goToProjects,
     goToImport,
-    setSelectedProject
+    setSelectedProject,
+    refreshKey
 }) {
     const totalProjects = projects.length;
     const totalRowsInSelected = selectedProject?.rows_count || 0;
+
+    const [projectSummary, setProjectSummary] = useState({
+        rows_count: selectedProject?.rows_count || 0,
+        completed_rows: selectedProject?.completed_rows || 0,
+        pending_rows: selectedProject?.pending_rows || 0,
+        progress_pct: selectedProject?.progress_pct || 0
+    });
+
+    useEffect(() => {
+        async function loadSummary() {
+            if (!selectedProject?.id) return;
+
+            try {
+                const summary = await api.getProjectSummary(selectedProject.id);
+                setProjectSummary(summary);
+            } catch {
+                setProjectSummary({
+                    rows_count: selectedProject?.rows_count || 0,
+                    completed_rows: selectedProject?.completed_rows || 0,
+                    pending_rows: selectedProject?.pending_rows || 0,
+                    progress_pct: selectedProject?.progress_pct || 0
+                });
+            }
+        }
+
+        loadSummary();
+    }, [selectedProject?.id, refreshKey]);
 
     return (
         <div className="app-shell">
@@ -91,19 +121,37 @@ export default function RowsPage({
                     <AppBrand />
                 </section>
 
-                <section className="stats-strip">
+                <section
+                    style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, minmax(0, 1fr)) 220px',
+                        gap: 14,
+                        alignItems: 'stretch'
+                    }}
+                >
                     <div className="glass-card stat-box compact">
                         <span>סה״כ פרויקטים</span>
                         <strong>{totalProjects}</strong>
                     </div>
+
                     <div className="glass-card stat-box compact">
                         <span>שורות בפרויקט</span>
-                        <strong>{totalRowsInSelected}</strong>
+                        <strong>{projectSummary.rows_count || totalRowsInSelected}</strong>
                     </div>
+
                     <div className="glass-card stat-box compact">
                         <span>שורות מוצגות</span>
                         <strong>{rowsData.rows.length}</strong>
                     </div>
+
+                    <ProjectClock
+                        total={projectSummary.rows_count}
+                        completed={projectSummary.completed_rows}
+                        pending={projectSummary.pending_rows}
+                        size={132}
+                        stroke={12}
+                        title="גרף שעון"
+                    />
                 </section>
 
                 <section className="content-grid">

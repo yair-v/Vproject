@@ -1,4 +1,5 @@
 import AppBrand from '../components/AppBrand';
+import ProjectClock from '../components/ProjectClock';
 
 export default function DashboardPage({
     projects,
@@ -74,17 +75,34 @@ export default function DashboardPage({
                                         type="button"
                                         className="dashboard-project-card"
                                         onClick={() => openProjectRows(project.id)}
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: '1fr 160px',
+                                            gap: 14,
+                                            alignItems: 'center'
+                                        }}
                                     >
-                                        <div className="dashboard-project-top">
-                                            <strong>{project.name}</strong>
-                                            <span className="rows-badge">{project.rows_count || 0} שורות</span>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div className="dashboard-project-top">
+                                                <strong>{project.name}</strong>
+                                                <span className="rows-badge">{project.rows_count || 0} שורות</span>
+                                            </div>
+
+                                            <p>{project.description || 'ללא תיאור'}</p>
+
+                                            <div className="dashboard-project-footer">
+                                                <span>פתח ניהול</span>
+                                            </div>
                                         </div>
 
-                                        <p>{project.description || 'ללא תיאור'}</p>
-
-                                        <div className="dashboard-project-footer">
-                                            <span>פתח ניהול</span>
-                                        </div>
+                                        <ProjectClock
+                                            total={project.rows_count}
+                                            completed={project.completed_rows}
+                                            pending={project.pending_rows}
+                                            size={110}
+                                            stroke={10}
+                                            title="גרף שעון"
+                                        />
                                     </button>
                                 ))}
                             </div>

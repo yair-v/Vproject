@@ -116,6 +116,11 @@ function buildMappedPayload(rawRow, mapping = {}) {
   };
 }
 
+function calcProgress(total, completed) {
+  if (!total) return 0;
+  return Math.round((completed / total) * 100);
+}
+
 app.get('/health', async (_req, res) => {
   await query('SELECT 1');
   res.json({ ok: true });
@@ -123,14 +128,61 @@ app.get('/health', async (_req, res) => {
 
 app.get('/api/projects', async (_req, res) => {
   const result = await query(`
-    SELECT p.id, p.name, p.description, p.created_at, p.updated_at,
-      COUNT(r.id)::int AS rows_count
+    SELECT
+      p.id,
+      p.name,
+      p.description,
+      p.created_at,
+      p.updated_at,
+      COUNT(r.id)::int AS rows_count,
+      COUNT(r.id) FILTER (WHERE r.status = 'completed')::int AS completed_rows,
+      COUNT(r.id) FILTER (WHERE r.status = 'pending')::int AS pending_rows
     FROM projects p
     LEFT JOIN project_rows r ON r.project_id = p.id
     GROUP BY p.id
     ORDER BY p.updated_at DESC, p.id DESC
   `);
-  res.json(result.rows);
+
+  res.json(
+    result.rows.map((row) => ({
+      ...row,
+      progress_pct: calcProgress(row.rows_count, row.completed_rows)
+    }))
+  );
+});
+
+app.get('/api/projects/:projectId/summary', async (req, res) => {
+  const { projectId } = req.params;
+
+  const projectResult = await query(
+    `SELECT id, name, description, created_at, updated_at
+     FROM projects
+     WHERE id = $1`,
+    [projectId]
+  );
+
+  if (!projectResult.rowCount) {
+    return res.status(404).json({ error: 'Project not found' });
+  }
+
+  const countsResult = await query(
+    `SELECT
+      COUNT(id)::int AS rows_count,
+      COUNT(id) FILTER (WHERE status = 'completed')::int AS completed_rows,
+      COUNT(id) FILTER (WHERE status = 'pending')::int AS pending_rows
+     FROM project_rows
+     WHERE project_id = $1`,
+    [projectId]
+  );
+
+  const project = projectResult.rows[0];
+  const counts = countsResult.rows[0];
+
+  res.json({
+    ...project,
+    ...counts,
+    progress_pct: calcProgress(counts.rows_count, counts.completed_rows)
+  });
 });
 
 app.post('/api/projects', async (req, res) => {

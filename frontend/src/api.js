@@ -31,6 +31,8 @@ async function request(path, options = {}) {
 
 export const api = {
   getProjects: () => request('/api/projects'),
+  getProjectSummary: (projectId) => request(`/api/projects/${projectId}/summary`),
+
   createProject: (payload) => request('/api/projects', { method: 'POST', body: JSON.stringify(payload) }),
   updateProject: (id, payload) => request(`/api/projects/${id}`, { method: 'PUT', body: JSON.stringify(payload) }),
   deleteProject: (id) => request(`/api/projects/${id}`, { method: 'DELETE' }),

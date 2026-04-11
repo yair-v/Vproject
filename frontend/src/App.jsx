@@ -229,6 +229,8 @@ export default function App() {
 
       resetForm();
       setError('');
+      setRefreshKey((prev) => prev + 1);
+      loadProjects();
     } catch (err) {
       setError(err.message);
     }
@@ -271,6 +273,8 @@ export default function App() {
       );
 
       setError('');
+      setRefreshKey((prev) => prev + 1);
+      loadProjects();
     } catch (err) {
       setError(err.message);
     }
@@ -338,6 +342,7 @@ export default function App() {
           resetForm();
           goToProjectRows(projectId);
         }}
+        refreshKey={refreshKey}
       />
     );
   }
@@ -365,6 +370,7 @@ export default function App() {
       error={error}
       openProjectsPage={goToProjects}
       openProjectRows={goToProjectRows}
+      openDashboard={goToDashboard}
     />
   );
 }
