@@ -12,6 +12,7 @@ export default function ProjectsPage({
   createProject,
   openProject,
   openSettings,
+  deleteProject,
   user
 }) {
   return (
@@ -25,7 +26,7 @@ export default function ProjectsPage({
               <p>יצירה, בחירה וכניסה לניהול מפורט של כל פרויקט במסך נפרד.</p>
             </div>
             <div className="toolbar-actions">
-              <button type="button" className="secondary-btn" onClick={openSettings}>הגדרות</button>
+              <button type="button" className="settings-btn-pro" onClick={openSettings}>הגדרות</button>
               <span className="rows-badge">{user.username} / {user.role}</span>
             </div>
           </section>
@@ -69,17 +70,37 @@ export default function ProjectsPage({
             ) : projects.length ? (
               <div className="projects-pro-grid">
                 {projects.map((project) => (
-                  <button key={project.id} type="button" className="project-pro-card with-clock" onClick={() => openProject(project.id)}>
-                    <div>
-                      <div className="project-pro-top">
-                        <strong>{project.name}</strong>
-                        <span className="rows-badge">{project.rows_count || 0} שורות</span>
+                  <div key={project.id} className="project-pro-card with-clock project-card-shell">
+                    <button type="button" className="project-card-main" onClick={() => openProject(project.id)}>
+                      <div>
+                        <div className="project-pro-top">
+                          <strong>{project.name}</strong>
+                          <span className="rows-badge">{project.rows_count || 0} שורות</span>
+                        </div>
+                        <p>{project.description || 'ללא תיאור'}</p>
+                        <div className="project-pro-bottom"><span>פתח ניהול</span></div>
                       </div>
-                      <p>{project.description || 'ללא תיאור'}</p>
-                      <div className="project-pro-bottom"><span>פתח ניהול</span></div>
-                    </div>
-                    <ProjectClock total={project.rows_count} completed={project.completed_rows} pending={project.pending_rows} size={96} stroke={10} title="" />
-                  </button>
+                      <ProjectClock total={project.rows_count} completed={project.completed_rows} pending={project.pending_rows} size={96} stroke={10} title="" />
+                    </button>
+                    {user.role === 'admin' && (
+                      <div className="project-card-actions">
+                        <button
+                          type="button"
+                          className="danger"
+                          onClick={async () => {
+                            if (!window.confirm(`למחוק את הפרויקט "${project.name}"?`)) return;
+                            try {
+                              await deleteProject(project.id);
+                            } catch (err) {
+                              window.alert(err.message);
+                            }
+                          }}
+                        >
+                          מחק פרויקט
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             ) : (

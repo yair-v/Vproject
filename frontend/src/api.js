@@ -46,6 +46,10 @@ export const api = {
   login: (payload) => request('/api/login', { method: 'POST', body: JSON.stringify(payload) }),
   getUsers: () => request('/api/users'),
   createUser: (payload) => request('/api/users', { method: 'POST', body: JSON.stringify(payload) }),
+updateUserRole: (id, role) => request(`/api/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) }),
+updateUserPassword: (id, password) => request(`/api/users/${id}/password`, { method: 'PUT', body: JSON.stringify({ password }) }),
+deleteUser: (id) => request(`/api/users/${id}`, { method: 'DELETE' }),
+
 
   getProjects: () => request('/api/projects'),
   getProjectSummary: (projectId) => request(`/api/projects/${projectId}/summary`),

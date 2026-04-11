@@ -230,6 +230,74 @@ app.post('/api/users', requireRole(['admin']), async (req, res) => {
   }
 });
 
+
+app.put('/api/users/:id/role', requireRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body || {};
+
+  if (!['admin', 'manager'].includes(role)) {
+    return res.status(400).json({ error: 'Role must be admin or manager' });
+  }
+
+  const targetUser = await query(`SELECT id, role FROM users WHERE id = $1`, [id]);
+  if (!targetUser.rowCount) return res.status(404).json({ error: 'User not found' });
+
+  if (Number(id) === req.authUser.id) {
+    return res.status(400).json({ error: 'לא ניתן לשנות את ההרשאה של המשתמש הנוכחי' });
+  }
+
+  if (targetUser.rows[0].role === 'admin' && role !== 'admin') {
+    const adminCount = await query(`SELECT COUNT(*)::int AS total FROM users WHERE role = 'admin'`);
+    if (adminCount.rows[0].total <= 1) {
+      return res.status(400).json({ error: 'לא ניתן להסיר את מנהל המערכת האחרון' });
+    }
+  }
+
+  const result = await query(
+    `UPDATE users SET role = $1 WHERE id = $2 RETURNING id, username, role, created_at`,
+    [role, id]
+  );
+
+  res.json(result.rows[0]);
+});
+
+app.put('/api/users/:id/password', requireRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+  const { password } = req.body || {};
+
+  if (!password?.trim()) {
+    return res.status(400).json({ error: 'סיסמה חובה' });
+  }
+
+  const targetUser = await query(`SELECT id FROM users WHERE id = $1`, [id]);
+  if (!targetUser.rowCount) return res.status(404).json({ error: 'User not found' });
+
+  const passwordHash = await bcrypt.hash(password.trim(), 10);
+  await query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [passwordHash, id]);
+  res.json({ success: true });
+});
+
+app.delete('/api/users/:id', requireRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+
+  const targetUser = await query(`SELECT id, role FROM users WHERE id = $1`, [id]);
+  if (!targetUser.rowCount) return res.status(404).json({ error: 'User not found' });
+
+  if (Number(id) === req.authUser.id) {
+    return res.status(400).json({ error: 'לא ניתן למחוק את המשתמש הנוכחי' });
+  }
+
+  if (targetUser.rows[0].role === 'admin') {
+    const adminCount = await query(`SELECT COUNT(*)::int AS total FROM users WHERE role = 'admin'`);
+    if (adminCount.rows[0].total <= 1) {
+      return res.status(400).json({ error: 'לא ניתן למחוק את מנהל המערכת האחרון' });
+    }
+  }
+
+  await query(`DELETE FROM users WHERE id = $1`, [id]);
+  res.status(204).end();
+});
+
 app.get('/api/projects', async (_req, res) => {
   const result = await query(`
     SELECT

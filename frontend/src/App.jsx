@@ -134,7 +134,22 @@ export default function App() {
     } catch (err) { setError(err.message); }
   }
 
-  async function saveRow(e) {
+async function deleteProject(projectId) {
+  if (!window.confirm('למחוק את הפרויקט וכל השורות שבו?')) return;
+  try {
+    await api.deleteProject(projectId);
+    await loadProjects();
+    setError('');
+    if (route.projectId === projectId) {
+      goToProjects();
+    }
+  } catch (err) {
+    setError(err.message);
+    throw err;
+  }
+}
+
+async function saveRow(e) {
     e.preventDefault();
     if (!route.projectId) return;
     try {
@@ -181,6 +196,6 @@ export default function App() {
   if (route.page === 'import' && route.projectId) return <ImportExcelPage projectId={route.projectId} projectName={selectedProject?.name || ''} onBack={() => goToProjectRows(route.projectId)} />;
   if (route.page === 'settings') return <SettingsPage user={user} onBack={goToDashboard} onLogout={logout} displaySettings={displaySettings} setDisplaySettings={setDisplaySettings} />;
   if (route.page === 'rows' && route.projectId) return <RowsPage projects={projects} selectedProject={selectedProject} rowsData={rowsData} loadingRows={loadingRows} loadingProjects={loadingProjects} error={error} search={search} setSearch={setSearch} status={status} setStatus={setStatus} form={form} setForm={setForm} editingRowId={editingRowId} updateForm={updateForm} resetForm={resetForm} saveRow={saveRow} startEdit={startEdit} deleteRow={deleteRow} loadRows={loadRows} handleExport={handleExport} goToProjects={goToProjects} goToImport={() => goToProjectImport(route.projectId)} setSelectedProject={(projectId) => { resetForm(); goToProjectRows(projectId); }} refreshKey={refreshKey} openSettings={goToSettings} user={user} />;
-  if (route.page === 'projects') return <ProjectsPage projects={projects} loadingProjects={loadingProjects} error={error} projectName={projectName} setProjectName={setProjectName} projectDescription={projectDescription} setProjectDescription={setProjectDescription} createProject={createProject} openProject={goToProjectRows} openSettings={goToSettings} user={user} />;
+  if (route.page === 'projects') return <ProjectsPage projects={projects} loadingProjects={loadingProjects} error={error} projectName={projectName} setProjectName={setProjectName} projectDescription={projectDescription} setProjectDescription={setProjectDescription} createProject={createProject} openProject={goToProjectRows} openSettings={goToSettings} deleteProject={deleteProject} user={user} />;
   return <DashboardPage projects={projects} loadingProjects={loadingProjects} error={error} openProjectsPage={goToProjects} openProjectRows={goToProjectRows} openSettings={goToSettings} user={user} />;
 }

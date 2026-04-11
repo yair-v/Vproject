@@ -23,6 +23,7 @@ function DisplaySettingsTab({ displaySettings, setDisplaySettings }) {
   );
 }
 
+
 function UsersTab({ user }) {
   const [users, setUsers] = useState([]);
   const [username, setUsername] = useState('');
@@ -39,19 +40,56 @@ function UsersTab({ user }) {
     }
   }
 
-  useEffect(() => { if (user.role === 'admin') loadUsers(); }, [user.role]);
+  useEffect(() => {
+    if (user.role === 'admin') loadUsers();
+  }, [user.role]);
 
   async function createUser() {
     try {
       await api.createUser({ username, password, role });
-      setUsername(''); setPassword(''); setRole('manager');
-      loadUsers();
+      setUsername('');
+      setPassword('');
+      setRole('manager');
+      await loadUsers();
     } catch (err) {
       setError(err.message);
     }
   }
 
-  if (user.role !== 'admin') return <section className="card glass-card settings-panel"><div className="empty">אין הרשאה לניהול משתמשים</div></section>;
+  async function changeRole(item, newRole) {
+    try {
+      await api.updateUserRole(item.id, newRole);
+      await loadUsers();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function changePassword(item) {
+    const newPassword = window.prompt(`סיסמה חדשה עבור ${item.username}`);
+    if (!newPassword?.trim()) return;
+    try {
+      await api.updateUserPassword(item.id, newPassword.trim());
+      setError('');
+      window.alert('הסיסמה עודכנה');
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  async function removeUser(item) {
+    if (!window.confirm(`למחוק את המשתמש ${item.username}?`)) return;
+    try {
+      await api.deleteUser(item.id);
+      await loadUsers();
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
+  if (user.role !== 'admin') {
+    return <section className="card glass-card settings-panel"><div className="empty">אין הרשאה לניהול משתמשים</div></section>;
+  }
 
   return (
     <section className="card glass-card settings-panel">
@@ -65,8 +103,27 @@ function UsersTab({ user }) {
       {error && <div className="error-box">{error}</div>}
       <div className="table-wrap">
         <table>
-          <thead><tr><th>שם משתמש</th><th>רמה</th><th>נוצר</th></tr></thead>
-          <tbody>{users.map((item) => <tr key={item.id}><td>{item.username}</td><td>{item.role === 'admin' ? 'מנהל' : 'אחראי'}</td><td>{String(item.created_at || '').slice(0, 10)}</td></tr>)}</tbody>
+          <thead><tr><th>שם משתמש</th><th>רמה</th><th>נוצר</th><th>פעולות</th></tr></thead>
+          <tbody>
+            {users.map((item) => (
+              <tr key={item.id}>
+                <td>{item.username}</td>
+                <td>
+                  <select value={item.role} onChange={(e) => changeRole(item, e.target.value)}>
+                    <option value="manager">אחראי</option>
+                    <option value="admin">מנהל</option>
+                  </select>
+                </td>
+                <td>{String(item.created_at || '').slice(0, 10)}</td>
+                <td>
+                  <div className="row-actions">
+                    <button type="button" onClick={() => changePassword(item)}>שנה סיסמה</button>
+                    <button type="button" className="danger" onClick={() => removeUser(item)}>מחק</button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </section>

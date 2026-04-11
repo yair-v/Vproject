@@ -62,7 +62,7 @@ export default function RowsPage({
         </div>
         <div className="sidebar-nav-actions">
           <button type="button" className="secondary-btn" onClick={goToProjects}>חזרה לדף פרויקטים</button>
-          <button type="button" className="secondary-btn" onClick={openSettings}>הגדרות</button>
+          <button type="button" className="settings-btn-pro" onClick={openSettings}>הגדרות</button>
         </div>
         <div className="project-list">
           {loadingProjects ? <div className="empty-sidebar-state">טוען...</div> : projects.length ? projects.map((project) => (
