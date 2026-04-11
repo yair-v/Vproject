@@ -11,6 +11,7 @@ export default function SmartSelect({
 }) {
     const rootRef = useRef(null);
     const listRef = useRef(null);
+
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [highlightIndex, setHighlightIndex] = useState(0);
@@ -59,9 +60,9 @@ export default function SmartSelect({
     useEffect(() => {
         if (!open || !listRef.current) return;
 
-        const active = listRef.current.querySelector('.smart-select-item.active');
-        if (active) {
-            active.scrollIntoView({ block: 'nearest' });
+        const activeItem = listRef.current.querySelector('.smart-select-item.active');
+        if (activeItem) {
+            activeItem.scrollIntoView({ block: 'nearest' });
         }
     }, [highlightIndex, open]);
 

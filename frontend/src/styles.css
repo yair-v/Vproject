@@ -102,6 +102,8 @@ textarea:focus {
   gap: 18px;
   min-width: 0;
   overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 .single-panel {
@@ -287,6 +289,7 @@ textarea:focus {
   padding: 18px;
   min-width: 0;
   overflow: visible;
+  position: relative;
 }
 
 .projects-pro-grid,
@@ -479,6 +482,8 @@ textarea:focus {
   gap: 18px;
   min-width: 0;
   overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 .table-top-pro {
@@ -488,6 +493,8 @@ textarea:focus {
 .field {
   display: grid;
   gap: 8px;
+  position: relative;
+  overflow: visible;
 }
 
 .field span {
@@ -566,10 +573,12 @@ textarea:focus {
 
 .table-wrap,
 .iphone-table-wrap {
-  overflow: visible;
+  overflow: auto;
   border-radius: 18px;
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.03);
+  position: relative;
+  z-index: 1;
 }
 
 .pro-table-wrap {
@@ -729,6 +738,7 @@ tbody tr:hover {
   backdrop-filter: blur(20px);
   padding: 20px;
   overflow: visible;
+  position: relative;
 }
 
 .import-status-card {
@@ -778,6 +788,15 @@ tbody tr:hover {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.05);
   overflow: visible;
+  position: relative;
+}
+
+.import-mapping-card {
+  z-index: 20;
+}
+
+.import-preview-card {
+  z-index: 1;
 }
 
 .preview-row-error {
@@ -866,11 +885,11 @@ tbody tr:hover {
 
 .smart-select {
   position: relative;
-  z-index: 1000;
+  z-index: 2000;
 }
 
 .smart-select.open {
-  z-index: 9999;
+  z-index: 10000;
 }
 
 .smart-select.disabled {
@@ -891,6 +910,8 @@ tbody tr:hover {
   border-radius: 14px;
   padding: 12px 14px;
   text-align: right;
+  position: relative;
+  z-index: 2;
 }
 
 .smart-select-value {
@@ -912,12 +933,13 @@ tbody tr:hover {
   position: absolute;
   inset-inline: 0;
   top: calc(100% + 8px);
-  z-index: 9999;
-  background: var(--panel-strong);
+  z-index: 10001;
+  background: linear-gradient(180deg, var(--panel), var(--panel-strong));
   border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: var(--shadow);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
   overflow: hidden;
+  max-height: 320px;
 }
 
 .smart-select-search {
@@ -927,10 +949,13 @@ tbody tr:hover {
   background: transparent;
   color: var(--text);
   padding: 12px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .smart-select-list {
-  max-height: 220px;
+  max-height: 260px;
   overflow-y: auto;
 }
 
@@ -942,6 +967,7 @@ tbody tr:hover {
   background: transparent;
   color: var(--text);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
 }
 
 .smart-select-item:last-child {
