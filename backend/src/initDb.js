@@ -51,11 +51,15 @@ async function init() {
       target_date DATE,
       completed_date DATE,
       status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'completed')),
-      custom_data JSONB NOT NULL DEFAULT '{}'::jsonb,
       created_at TIMESTAMP NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
       CONSTRAINT unique_serial_per_project UNIQUE(project_id, serial_number)
     );
+  `);
+
+  await query(`
+    ALTER TABLE project_rows
+    ADD COLUMN IF NOT EXISTS custom_data JSONB NOT NULL DEFAULT '{}'::jsonb;
   `);
 
   await query(`
@@ -75,12 +79,36 @@ async function init() {
     );
   `);
 
-  await query(`CREATE INDEX IF NOT EXISTS idx_project_rows_project_id ON project_rows(project_id);`);
-  await query(`CREATE INDEX IF NOT EXISTS idx_project_rows_serial_number ON project_rows(serial_number);`);
-  await query(`CREATE INDEX IF NOT EXISTS idx_project_rows_status ON project_rows(status);`);
-  await query(`CREATE INDEX IF NOT EXISTS idx_project_rows_target_date ON project_rows(target_date);`);
-  await query(`CREATE INDEX IF NOT EXISTS idx_project_rows_custom_data_gin ON project_rows USING GIN (custom_data);`);
-  await query(`CREATE INDEX IF NOT EXISTS idx_project_fields_project_id ON project_fields(project_id);`);
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_project_rows_project_id
+    ON project_rows(project_id);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_project_rows_serial_number
+    ON project_rows(serial_number);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_project_rows_status
+    ON project_rows(status);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_project_rows_target_date
+    ON project_rows(target_date);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_project_rows_custom_data_gin
+    ON project_rows
+    USING GIN (custom_data);
+  `);
+
+  await query(`
+    CREATE INDEX IF NOT EXISTS idx_project_fields_project_id
+    ON project_fields(project_id);
+  `);
 
   await query(`
     CREATE OR REPLACE FUNCTION set_updated_at()
@@ -97,18 +125,24 @@ async function init() {
     await query(`
       CREATE TRIGGER trigger_${tableName}_updated_at
       BEFORE UPDATE ON ${tableName}
-      FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+      FOR EACH ROW
+      EXECUTE FUNCTION set_updated_at();
     `);
   }
 
   const adminUsername = process.env.ADMIN_USERNAME || 'admin';
   const adminPassword = process.env.ADMIN_PASSWORD || 'admin1234';
 
-  const existingAdmin = await query(`SELECT id FROM users WHERE username = $1`, [adminUsername]);
+  const existingAdmin = await query(
+    `SELECT id FROM users WHERE username = $1`,
+    [adminUsername]
+  );
+
   if (!existingAdmin.rowCount) {
     const passwordHash = await bcrypt.hash(adminPassword, 10);
     await query(
-      `INSERT INTO users(username, password_hash, role) VALUES ($1, $2, 'admin')`,
+      `INSERT INTO users(username, password_hash, role)
+       VALUES ($1, $2, 'admin')`,
       [adminUsername, passwordHash]
     );
     console.log(`Default admin created: ${adminUsername}`);
