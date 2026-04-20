@@ -1005,7 +1005,8 @@ app.post('/api/projects/:projectId/import-mapped', requireRole(['admin', 'manage
         error:
           error?.code === '23505'
             ? 'המספר הסידורי כבר קיים בפרויקט הזה'
-            : (error.message || 'Import failed')
+            : (error.message || 'Import failed'),
+        rawRow: rows[index]
       });
     }
   }

@@ -63,6 +63,15 @@ function validatePreviewRow(mappedRow, fieldDefs) {
   return errors;
 }
 
+function safeJsonPreview(value) {
+  if (!value || typeof value !== 'object') return '';
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return '';
+  }
+}
+
 export default function ImportExcelPage({ projectId, projectName, onBack }) {
   const [fileName, setFileName] = useState('');
   const [headers, setHeaders] = useState([]);
@@ -83,14 +92,16 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
       if (!projectId) return;
       try {
         const result = await api.getProjectFields(projectId);
-        setCustomFields((result.customFields || []).map((field) => ({
-          key: field.field_key,
-          label: field.field_label,
-          required: !!field.is_required,
-          field_type: field.field_type,
-          options: field.options || [],
-          is_base: false
-        })));
+        setCustomFields(
+          (result.customFields || []).map((field) => ({
+            key: field.field_key,
+            label: field.field_label,
+            required: !!field.is_required,
+            field_type: field.field_type,
+            options: field.options || [],
+            is_base: false
+          }))
+        );
       } catch {
         setCustomFields([]);
       }
@@ -153,12 +164,11 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
     setError('');
 
     try {
-      setLastResult(
-        await api.importMappedRows(projectId, {
-          mapping,
-          rows: allRows
-        })
-      );
+      const result = await api.importMappedRows(projectId, {
+        mapping,
+        rows: allRows
+      });
+      setLastResult(result);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -331,25 +341,63 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
               </section>
 
               {lastResult ? (
-                <section className="glass-card import-result-card">
-                  <div className="card-title-row">
-                    <div>
-                      <div className="section-chip">Result</div>
-                      <h3>תוצאת ייבוא</h3>
+                <>
+                  <section className="glass-card import-result-card">
+                    <div className="card-title-row">
+                      <div>
+                        <div className="section-chip">Result</div>
+                        <h3>תוצאת ייבוא</h3>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="import-result-summary">
-                    <div className="stat-box compact">
-                      <span>נוספו</span>
-                      <strong>{lastResult.inserted}</strong>
+                    <div className="import-result-summary">
+                      <div className="stat-box compact">
+                        <span>נוספו</span>
+                        <strong>{lastResult.inserted}</strong>
+                      </div>
+                      <div className="stat-box compact">
+                        <span>נכשלו</span>
+                        <strong>{lastResult.errors?.length || 0}</strong>
+                      </div>
                     </div>
-                    <div className="stat-box compact">
-                      <span>שגיאות</span>
-                      <strong>{lastResult.errors?.length || 0}</strong>
-                    </div>
-                  </div>
-                </section>
+                  </section>
+
+                  {!!lastResult.errors?.length && (
+                    <section className="glass-card import-result-card">
+                      <div className="card-title-row">
+                        <div>
+                          <div className="section-chip">Import Errors</div>
+                          <h3>שורות שלא יובאו</h3>
+                        </div>
+                      </div>
+
+                      <div className="table-wrap">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th>שורה בקובץ</th>
+                              <th>סיבת שגיאה</th>
+                              <th>נתונים מקוריים</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {lastResult.errors.map((item, index) => (
+                              <tr key={`${item.row}-${index}`}>
+                                <td>{item.row}</td>
+                                <td>{item.error}</td>
+                                <td>
+                                  <pre className="import-error-json">
+                                    {safeJsonPreview(item.rawRow)}
+                                  </pre>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </section>
+                  )}
+                </>
               ) : null}
             </>
           )}

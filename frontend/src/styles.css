@@ -1391,3 +1391,18 @@ tbody tr:hover {
     grid-column: auto;
   }
 }
+
+.import-error-json {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 420px;
+  max-height: 180px;
+  overflow: auto;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
