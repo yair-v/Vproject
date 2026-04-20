@@ -30,7 +30,7 @@ function displayDate(value) {
   return str;
 }
 
-function validatePreviewRow(mappedRow, fieldDefs) {
+function validatePreviewRow(mappedRow, mapping, fieldDefs) {
   const errors = [];
   const serial = normalize(mappedRow.serial_number);
   const branchNumber = normalize(mappedRow.branch_number);
@@ -54,8 +54,9 @@ function validatePreviewRow(mappedRow, fieldDefs) {
   }
 
   for (const field of fieldDefs) {
+    const isMapped = !!mapping[field.key];
     const value = mappedRow[field.key];
-    if (field.required && normalize(value) === '') {
+    if (field.required && isMapped && normalize(value) === '') {
       errors.push(`השדה "${field.label}" הוא שדה חובה`);
     }
   }
@@ -149,7 +150,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
       return {
         index: index + 1,
         mappedRow,
-        errors: validatePreviewRow(mappedRow, allFieldDefs)
+        errors: validatePreviewRow(mappedRow, mapping, allFieldDefs)
       };
     });
   }, [allRows, mapping, allFieldDefs]);

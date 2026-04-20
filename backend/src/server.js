@@ -27,8 +27,6 @@ const BASE_FIELDS = [
   { key: 'status', label: 'סטטוס', field_type: 'select', is_required: true, is_base: true, options: ['ממתין', 'בוצע'] }
 ];
 
-const BASE_FIELD_KEY_SET = new Set(BASE_FIELDS.map((field) => field.key));
-
 const IMPORT_FIELD_SYNONYMS = {
   customer_name: ['לקוח', 'customer', 'customer name', 'customer_name', 'client', 'client name'],
   branch_name: ['שם סניף', 'branch', 'branch name', 'branch_name', 'site name'],
@@ -195,9 +193,9 @@ function buildMappedPayload(rawRow, mapping = {}, customFields = []) {
   };
 
   for (const field of customFields) {
-    payload.custom_data[field.field_key] = mapping[field.field_key]
-      ? rawRow[mapping[field.field_key]]
-      : '';
+    if (mapping[field.field_key]) {
+      payload.custom_data[field.field_key] = rawRow[mapping[field.field_key]] ?? '';
+    }
   }
 
   return payload;
@@ -208,7 +206,13 @@ function sanitizeCustomData(rawData, customFields) {
   const sanitized = {};
 
   for (const field of customFields) {
+    const hasKey = Object.prototype.hasOwnProperty.call(source, field.field_key);
     const raw = source[field.field_key];
+
+    if (!hasKey) {
+      sanitized[field.field_key] = '';
+      continue;
+    }
 
     if (raw === undefined || raw === null || raw === '') {
       if (field.is_required) {
