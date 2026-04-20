@@ -8,11 +8,38 @@ export function statusLabel(value) {
   return normalizeStatus(value) === 'completed' ? 'בוצע' : 'ממתין';
 }
 
+function excelSerialToDate(serial) {
+  const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+  const wholeDays = Math.floor(Number(serial));
+  const result = new Date(excelEpoch);
+  result.setUTCDate(excelEpoch.getUTCDate() + wholeDays);
+  return result;
+}
+
 export function toDbDate(value) {
-  if (!value) return null;
+  if (value === null || value === undefined || value === '') return null;
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    const asDate = excelSerialToDate(value);
+    const yyyy = asDate.getUTCFullYear();
+    const mm = String(asDate.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(asDate.getUTCDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   const str = String(value).trim();
 
+  if (!str) return null;
+
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+  if (/^\d{5}(\.\d+)?$/.test(str)) {
+    const asDate = excelSerialToDate(Number(str));
+    const yyyy = asDate.getUTCFullYear();
+    const mm = String(asDate.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(asDate.getUTCDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
 
   const match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (match) {
@@ -32,9 +59,11 @@ export function toDbDate(value) {
 }
 
 export function toDisplayDate(value) {
-  if (!value) return '';
+  if (!value && value !== 0) return '';
+
   const str = String(value).slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return String(value);
+
   const [yyyy, mm, dd] = str.split('-');
   return `${dd}/${mm}/${yyyy}`;
 }

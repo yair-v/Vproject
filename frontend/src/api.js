@@ -162,10 +162,10 @@ export const api = {
       method: 'DELETE'
     }),
 
-  previewImport: (file) => {
+  previewImport: (projectId, file) => {
     const formData = new FormData();
     formData.append('file', file);
-    return request('/api/import/preview', {
+    return request(`/api/projects/${projectId}/import-preview`, {
       method: 'POST',
       body: formData
     });

@@ -1,25 +1,36 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api';
 import AppBrand from '../components/AppBrand';
 import SmartSelect from '../components/SmartSelect';
 
-const FIELD_DEFS = [
-  { key: 'customer_name', label: 'לקוח', required: false },
-  { key: 'branch_name', label: 'שם סניף', required: false },
-  { key: 'branch_number', label: 'מספר סניף', required: false },
-  { key: 'position_number', label: 'מספר עמדה', required: false },
-  { key: 'serial_number', label: 'מספר סידורי', required: true },
-  { key: 'installer_name', label: 'שם מתקין', required: false },
-  { key: 'target_date', label: 'תאריך יעד', required: false },
-  { key: 'completed_date', label: 'תאריך ביצוע', required: false },
-  { key: 'status', label: 'סטטוס', required: false }
+const BASE_FIELD_DEFS = [
+  { key: 'customer_name', label: 'לקוח', required: false, field_type: 'text', is_base: true },
+  { key: 'branch_name', label: 'שם סניף', required: false, field_type: 'text', is_base: true },
+  { key: 'branch_number', label: 'מספר סניף', required: false, field_type: 'number', is_base: true },
+  { key: 'position_number', label: 'מספר עמדה', required: false, field_type: 'number', is_base: true },
+  { key: 'serial_number', label: 'מספר סידורי', required: true, field_type: 'number', is_base: true },
+  { key: 'installer_name', label: 'שם מתקין', required: false, field_type: 'text', is_base: true },
+  { key: 'target_date', label: 'תאריך יעד', required: false, field_type: 'date', is_base: true },
+  { key: 'completed_date', label: 'תאריך ביצוע', required: false, field_type: 'date', is_base: true },
+  { key: 'status', label: 'סטטוס', required: false, field_type: 'select', is_base: true }
 ];
 
 function normalize(value) {
   return String(value ?? '').trim();
 }
 
-function validatePreviewRow(mappedRow) {
+function displayDate(value) {
+  if (!value && value !== 0) return '';
+  const str = String(value).trim();
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    const [yyyy, mm, dd] = str.split('-');
+    return `${dd}/${mm}/${yyyy}`;
+  }
+  return str;
+}
+
+function validatePreviewRow(mappedRow, fieldDefs) {
   const errors = [];
   const serial = normalize(mappedRow.serial_number);
   const branchNumber = normalize(mappedRow.branch_number);
@@ -42,6 +53,13 @@ function validatePreviewRow(mappedRow) {
     errors.push('בסטטוס בוצע חייב שם מתקין');
   }
 
+  for (const field of fieldDefs) {
+    const value = mappedRow[field.key];
+    if (field.required && normalize(value) === '') {
+      errors.push(`השדה "${field.label}" הוא שדה חובה`);
+    }
+  }
+
   return errors;
 }
 
@@ -54,6 +72,32 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
   const [lastResult, setLastResult] = useState(null);
+  const [customFields, setCustomFields] = useState([]);
+
+  const allFieldDefs = useMemo(() => {
+    return [...BASE_FIELD_DEFS, ...customFields];
+  }, [customFields]);
+
+  useEffect(() => {
+    async function loadFields() {
+      if (!projectId) return;
+      try {
+        const result = await api.getProjectFields(projectId);
+        setCustomFields((result.customFields || []).map((field) => ({
+          key: field.field_key,
+          label: field.field_label,
+          required: !!field.is_required,
+          field_type: field.field_type,
+          options: field.options || [],
+          is_base: false
+        })));
+      } catch {
+        setCustomFields([]);
+      }
+    }
+
+    loadFields();
+  }, [projectId]);
 
   async function handleFileChange(event) {
     const file = event.target.files?.[0];
@@ -64,7 +108,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
     setLastResult(null);
 
     try {
-      const result = await api.previewImport(file);
+      const result = await api.previewImport(projectId, file);
       setFileName(file.name);
       setHeaders(result.headers || []);
       setAllRows(result.rows || []);
@@ -85,22 +129,24 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
     return allRows.slice(0, 20).map((rawRow, index) => {
       const mappedRow = {};
 
-      FIELD_DEFS.forEach((field) => {
+      allFieldDefs.forEach((field) => {
         const sourceColumn = mapping[field.key];
-        mappedRow[field.key] = sourceColumn ? rawRow[sourceColumn] ?? '' : '';
+        const rawValue = sourceColumn ? rawRow[sourceColumn] ?? '' : '';
+        mappedRow[field.key] = field.field_type === 'date' ? displayDate(rawValue) : rawValue;
       });
 
       return {
         index: index + 1,
         mappedRow,
-        errors: validatePreviewRow(mappedRow)
+        errors: validatePreviewRow(mappedRow, allFieldDefs)
       };
     });
-  }, [allRows, mapping]);
+  }, [allRows, mapping, allFieldDefs]);
 
   async function handleImport() {
     if (!mapping.serial_number) {
-      return setError('חובה למפות את השדה "מספר סידורי" לפני הייבוא');
+      setError('חובה למפות את השדה "מספר סידורי" לפני הייבוא');
+      return;
     }
 
     setImporting(true);
@@ -132,9 +178,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
             <section className="import-hero-card">
               <div className="section-chip">Import Pro</div>
               <h1>ייבוא אקסל מתקדם</h1>
-              <p>
-                פרויקט: <strong>{projectName || `#${projectId}`}</strong>
-              </p>
+              <p>פרויקט: <strong>{projectName || `#${projectId}`}</strong></p>
 
               <div className="import-hero-actions">
                 <button type="button" className="secondary-btn" onClick={onBack}>
@@ -177,15 +221,13 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
                 <div className="glass-card stat-box">
                   <span>שדות שמופו</span>
                   <strong>
-                    {FIELD_DEFS.filter((field) => mapping[field.key]).length}/{FIELD_DEFS.length}
+                    {allFieldDefs.filter((field) => mapping[field.key]).length}/{allFieldDefs.length}
                   </strong>
                 </div>
 
                 <div className="glass-card stat-box">
                   <span>שורות עם שגיאות</span>
-                  <strong>
-                    {previewRows.filter((row) => row.errors.length > 0).length}
-                  </strong>
+                  <strong>{previewRows.filter((row) => row.errors.length > 0).length}</strong>
                 </div>
               </section>
 
@@ -198,25 +240,26 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
                 </div>
 
                 <div className="mapping-grid pro-mapping-grid">
-                  {FIELD_DEFS.map((field) => (
+                  {allFieldDefs.map((field) => (
                     <label key={field.key} className="field pro-field">
                       <span>
                         {field.label}
                         {field.required ? ' *' : ''}
+                        {!field.is_base ? ' (מותאם)' : ''}
                       </span>
 
                       <SmartSelect
                         value={mapping[field.key] || ''}
-                        onChange={(selectedValue) =>
+                        onChange={(selectedHeader) =>
                           setMapping((prev) => ({
                             ...prev,
-                            [field.key]: selectedValue
+                            [field.key]: selectedHeader
                           }))
                         }
-                        options={headers}
+                        options={['', ...headers].filter(Boolean)}
                         placeholder="לא ממופה"
                         searchPlaceholder="חפש כותרת..."
-                        emptyText="אין כותרות מתאימות"
+                        emptyText="אין כותרות"
                       />
                     </label>
                   ))}
@@ -237,12 +280,13 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
                     <thead>
                       <tr>
                         <th>#</th>
-                        {FIELD_DEFS.map((field) => (
+                        {allFieldDefs.map((field) => (
                           <th key={field.key}>{field.label}</th>
                         ))}
                         <th>שגיאות</th>
                       </tr>
                     </thead>
+
                     <tbody>
                       {previewRows.map((row) => (
                         <tr
@@ -251,7 +295,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
                         >
                           <td>{row.index}</td>
 
-                          {FIELD_DEFS.map((field) => (
+                          {allFieldDefs.map((field) => (
                             <td key={field.key}>
                               {String(row.mappedRow[field.key] ?? '')}
                             </td>
@@ -261,9 +305,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
                             {row.errors.length ? (
                               <div className="row-error-list">
                                 {row.errors.map((item, idx) => (
-                                  <span key={idx} className="error-pill">
-                                    {item}
-                                  </span>
+                                  <span key={idx} className="error-pill">{item}</span>
                                 ))}
                               </div>
                             ) : (
@@ -288,7 +330,7 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
                 </div>
               </section>
 
-              {lastResult && (
+              {lastResult ? (
                 <section className="glass-card import-result-card">
                   <div className="card-title-row">
                     <div>
@@ -302,14 +344,13 @@ export default function ImportExcelPage({ projectId, projectName, onBack }) {
                       <span>נוספו</span>
                       <strong>{lastResult.inserted}</strong>
                     </div>
-
                     <div className="stat-box compact">
                       <span>שגיאות</span>
                       <strong>{lastResult.errors?.length || 0}</strong>
                     </div>
                   </div>
                 </section>
-              )}
+              ) : null}
             </>
           )}
         </div>
