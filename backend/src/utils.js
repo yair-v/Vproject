@@ -24,7 +24,7 @@ export function toDbDate(value) {
     const yyyy = asDate.getUTCFullYear();
     const mm = String(asDate.getUTCMonth() + 1).padStart(2, '0');
     const dd = String(asDate.getUTCDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    return `${dd}/${mm}/${yyyy}`;
   }
 
   const str = String(value).trim();
@@ -38,13 +38,13 @@ export function toDbDate(value) {
     const yyyy = asDate.getUTCFullYear();
     const mm = String(asDate.getUTCMonth() + 1).padStart(2, '0');
     const dd = String(asDate.getUTCDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    return `${dd}/${mm}/${yyyy}`;
   }
 
   const match = str.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (match) {
     const [, dd, mm, yyyy] = match;
-    return `${yyyy}-${mm}-${dd}`;
+    return `${dd}/${mm}/${yyyy}`;
   }
 
   const asDate = new Date(str);
@@ -52,7 +52,7 @@ export function toDbDate(value) {
     const yyyy = asDate.getFullYear();
     const mm = String(asDate.getMonth() + 1).padStart(2, '0');
     const dd = String(asDate.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
+    return `${dd}/${mm}/${yyyy}`;
   }
 
   return null;
@@ -73,5 +73,5 @@ export function todayDbDate() {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+  return `${dd}/${mm}/${yyyy}`;
 }
