@@ -17,12 +17,6 @@ export default function RowsPage({
   setSearch,
   status,
   setStatus,
-  rowFilters,
-  setRowFilters,
-  sortKey,
-  setSortKey,
-  sortDir,
-  setSortDir,
   form,
   setForm,
   editingRowId,
@@ -47,6 +41,7 @@ export default function RowsPage({
     pending_rows: 0
   });
   const [customFields, setCustomFields] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const sortedCustomFields = useMemo(() => {
     return [...customFields].sort(
@@ -91,6 +86,27 @@ export default function RowsPage({
     loadProjectFields();
   }, [selectedProject?.id, refreshKey]);
 
+
+
+  const sortedRows = useMemo(() => {
+    const rows = [...rowsData.rows];
+    if (!sortConfig.key) return rows;
+
+    return rows.sort((a, b) => {
+      const aVal = a[sortConfig.key] ?? a.custom_data?.[sortConfig.key] ?? '';
+      const bVal = b[sortConfig.key] ?? b.custom_data?.[sortConfig.key] ?? '';
+      const result = String(aVal).localeCompare(String(bVal), 'he', { numeric: true });
+      return sortConfig.direction === 'asc' ? result : result * -1;
+    });
+  }, [rowsData.rows, sortConfig]);
+
+  function handleSort(fieldKey) {
+    setSortConfig((prev) => ({
+      key: fieldKey,
+      direction: prev.key === fieldKey && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  }
+
   function updateCustomField(fieldKey, value) {
     setForm((prev) => ({
       ...prev,
@@ -106,46 +122,6 @@ export default function RowsPage({
     const result = await api.getProjectFields(selectedProject.id);
     setCustomFields(result.customFields || []);
   }
-
-  const baseFilterFields = [
-    { key: 'customer_name', label: 'לקוח' },
-    { key: 'branch_name', label: 'שם סניף' },
-    { key: 'branch_number', label: 'מספר סניף' },
-    { key: 'position_number', label: 'מספר עמדה' },
-    { key: 'serial_number', label: 'מספר סידורי' },
-    { key: 'installer_name', label: 'שם מתקין' },
-    { key: 'target_date', label: 'תאריך יעד' },
-    { key: 'completed_date', label: 'תאריך ביצוע' }
-  ];
-
-  const sortOptions = [
-    { key: 'updated_at', label: 'עודכן לאחרונה' },
-    { key: 'created_at', label: 'נוצר לאחרונה' },
-    ...baseFilterFields,
-    { key: 'status', label: 'סטטוס' },
-    ...sortedCustomFields.map((field) => ({ key: field.field_key, label: field.field_label }))
-  ];
-
-  function updateRowFilter(key, value) {
-    setRowFilters((prev) => ({
-      ...prev,
-      [key]: value
-    }));
-  }
-
-  function clearRowFilters() {
-    setSearch('');
-    setStatus('');
-    setRowFilters({});
-    setSortKey('updated_at');
-    setSortDir('desc');
-  }
-
-  const activeFiltersCount = [
-    search,
-    status,
-    ...Object.values(rowFilters || {})
-  ].filter((value) => String(value || '').trim()).length;
 
   return (
     <div className="app-shell">
@@ -436,7 +412,7 @@ export default function RowsPage({
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="חיפוש חכם בכל העמודות..."
+                  placeholder="חיפוש חכם..."
                 />
 
                 <select
@@ -447,60 +423,6 @@ export default function RowsPage({
                   <option value="pending">ממתין</option>
                   <option value="completed">בוצע</option>
                 </select>
-              </div>
-            </div>
-
-            <div className="rows-filter-panel">
-              <div className="filter-panel-title">
-                <strong>סינון ומיון עמדות</strong>
-                <span>{activeFiltersCount ? activeFiltersCount + ' מסננים פעילים' : 'ללא מסננים'}</span>
-              </div>
-
-              <div className="rows-filter-grid">
-                {baseFilterFields.map((field) => (
-                  <label key={field.key} className="mini-field">
-                    <span>{field.label}</span>
-                    <input
-                      value={rowFilters?.[field.key] || ''}
-                      onChange={(e) => updateRowFilter(field.key, e.target.value)}
-                      placeholder={'סנן לפי ' + field.label}
-                    />
-                  </label>
-                ))}
-
-                {sortedCustomFields.map((field) => (
-                  <label key={field.id} className="mini-field">
-                    <span>{field.field_label}</span>
-                    <input
-                      value={rowFilters?.[field.field_key] || ''}
-                      onChange={(e) => updateRowFilter(field.field_key, e.target.value)}
-                      placeholder={'סנן לפי ' + field.field_label}
-                    />
-                  </label>
-                ))}
-
-                <label className="mini-field">
-                  <span>מיון לפי</span>
-                  <select value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
-                    {sortOptions.map((option) => (
-                      <option key={option.key} value={option.key}>{option.label}</option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="mini-field">
-                  <span>כיוון מיון</span>
-                  <select value={sortDir} onChange={(e) => setSortDir(e.target.value)}>
-                    <option value="asc">עולה / א׳ עד ת׳ / קטן לגדול</option>
-                    <option value="desc">יורד / ת׳ עד א׳ / גדול לקטן</option>
-                  </select>
-                </label>
-              </div>
-
-              <div className="filter-panel-actions">
-                <button type="button" className="secondary-btn" onClick={clearRowFilters}>
-                  נקה סינון ומיון
-                </button>
               </div>
             </div>
 
@@ -532,11 +454,11 @@ export default function RowsPage({
               <table>
                 <thead>
                   <tr>
-                    <th>לקוח</th>
-                    <th>שם סניף</th>
-                    <th>מספר סניף</th>
-                    <th>מספר עמדה</th>
-                    <th>מספר סידורי</th>
+                    <th onClick={() => handleSort('customer_name')}>לקוח {sortConfig.key === 'customer_name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
+                    <th onClick={() => handleSort('branch_name')}>שם סניף {sortConfig.key === 'branch_name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
+                    <th onClick={() => handleSort('branch_number')}>מספר סניף {sortConfig.key === 'branch_number' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
+                    <th onClick={() => handleSort('position_number')}>מספר עמדה {sortConfig.key === 'position_number' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
+                    <th onClick={() => handleSort('serial_number')}>מספר סידורי {sortConfig.key === 'serial_number' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
                     <th>שם מתקין</th>
                     <th>תאריך יעד</th>
                     <th>תאריך ביצוע</th>
@@ -556,7 +478,7 @@ export default function RowsPage({
                       </td>
                     </tr>
                   ) : rowsData.rows.length ? (
-                    rowsData.rows.map((row) => (
+                    sortedRows.map((row) => (
                       <tr key={row.id}>
                         <td>{row.customer_name}</td>
                         <td>{row.branch_name}</td>

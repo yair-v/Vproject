@@ -747,15 +747,6 @@ app.get('/api/projects/:projectId/rows', async (req, res) => {
   const offset = (page - 1) * pageSize;
   const search = (req.query.search || '').toString().trim();
   const status = (req.query.status || '').toString().trim();
-  const sortKey = (req.query.sortKey || 'updated_at').toString().trim();
-  const sortDir = (req.query.sortDir || 'desc').toString().toLowerCase() === 'asc' ? 'ASC' : 'DESC';
-  let filters = {};
-
-  try {
-    filters = JSON.parse((req.query.filters || '{}').toString());
-  } catch {
-    filters = {};
-  }
 
   const customFields = await getProjectCustomFields(projectId);
 
@@ -779,55 +770,6 @@ app.get('/api/projects/:projectId/rows', async (req, res) => {
     params.push(status);
     where.push(`r.status = $${params.length}`);
   }
-
-  const filterColumnMap = {
-    customer_name: 'c.name',
-    branch_name: 'r.branch_name',
-    branch_number: 'r.branch_number',
-    position_number: 'r.position_number',
-    serial_number: 'r.serial_number',
-    installer_name: 'i.name',
-    target_date: `to_char(r.target_date, 'DD/MM/YYYY')`,
-    completed_date: `to_char(r.completed_date, 'DD/MM/YYYY')`,
-    status: 'r.status'
-  };
-
-  const customFieldKeys = new Set(customFields.map((field) => field.field_key));
-
-  Object.entries(filters || {}).forEach(([key, rawValue]) => {
-    const value = String(rawValue || '').trim();
-    if (!value) return;
-
-    params.push(value);
-    if (filterColumnMap[key]) {
-      where.push(`COALESCE(${filterColumnMap[key]}::text, '') ILIKE '%' || $${params.length} || '%'`);
-      return;
-    }
-
-    if (customFieldKeys.has(key)) {
-      where.push(`COALESCE(r.custom_data ->> '${key}', '') ILIKE '%' || $${params.length} || '%'`);
-    }
-  });
-
-  const sortColumnMap = {
-    updated_at: 'r.updated_at',
-    created_at: 'r.created_at',
-    customer_name: 'c.name',
-    branch_name: 'r.branch_name',
-    branch_number: 'r.branch_number',
-    position_number: 'r.position_number',
-    serial_number: 'r.serial_number',
-    installer_name: 'i.name',
-    target_date: 'r.target_date',
-    completed_date: 'r.completed_date',
-    status: 'r.status'
-  };
-
-  let orderBy = sortColumnMap[sortKey];
-  if (!orderBy && customFieldKeys.has(sortKey)) {
-    orderBy = `r.custom_data ->> '${sortKey}'`;
-  }
-  if (!orderBy) orderBy = 'r.updated_at';
 
   const whereSql = where.join(' AND ');
 
@@ -853,7 +795,7 @@ app.get('/api/projects/:projectId/rows', async (req, res) => {
      LEFT JOIN customers c ON c.id = r.customer_id
      LEFT JOIN installers i ON i.id = r.installer_id
      WHERE ${whereSql}
-     ORDER BY ${orderBy} ${sortDir} NULLS LAST, r.id DESC
+     ORDER BY r.updated_at DESC, r.id DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params
   );
