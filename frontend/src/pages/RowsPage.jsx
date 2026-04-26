@@ -17,6 +17,12 @@ export default function RowsPage({
   setSearch,
   status,
   setStatus,
+  rowFilters,
+  setRowFilters,
+  sortKey,
+  setSortKey,
+  sortDir,
+  setSortDir,
   form,
   setForm,
   editingRowId,
@@ -100,6 +106,46 @@ export default function RowsPage({
     const result = await api.getProjectFields(selectedProject.id);
     setCustomFields(result.customFields || []);
   }
+
+  const baseFilterFields = [
+    { key: 'customer_name', label: 'לקוח' },
+    { key: 'branch_name', label: 'שם סניף' },
+    { key: 'branch_number', label: 'מספר סניף' },
+    { key: 'position_number', label: 'מספר עמדה' },
+    { key: 'serial_number', label: 'מספר סידורי' },
+    { key: 'installer_name', label: 'שם מתקין' },
+    { key: 'target_date', label: 'תאריך יעד' },
+    { key: 'completed_date', label: 'תאריך ביצוע' }
+  ];
+
+  const sortOptions = [
+    { key: 'updated_at', label: 'עודכן לאחרונה' },
+    { key: 'created_at', label: 'נוצר לאחרונה' },
+    ...baseFilterFields,
+    { key: 'status', label: 'סטטוס' },
+    ...sortedCustomFields.map((field) => ({ key: field.field_key, label: field.field_label }))
+  ];
+
+  function updateRowFilter(key, value) {
+    setRowFilters((prev) => ({
+      ...prev,
+      [key]: value
+    }));
+  }
+
+  function clearRowFilters() {
+    setSearch('');
+    setStatus('');
+    setRowFilters({});
+    setSortKey('updated_at');
+    setSortDir('desc');
+  }
+
+  const activeFiltersCount = [
+    search,
+    status,
+    ...Object.values(rowFilters || {})
+  ].filter((value) => String(value || '').trim()).length;
 
   return (
     <div className="app-shell">
@@ -390,7 +436,7 @@ export default function RowsPage({
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="חיפוש חכם..."
+                  placeholder="חיפוש חכם בכל העמודות..."
                 />
 
                 <select
@@ -401,6 +447,60 @@ export default function RowsPage({
                   <option value="pending">ממתין</option>
                   <option value="completed">בוצע</option>
                 </select>
+              </div>
+            </div>
+
+            <div className="rows-filter-panel">
+              <div className="filter-panel-title">
+                <strong>סינון ומיון עמדות</strong>
+                <span>{activeFiltersCount ? activeFiltersCount + ' מסננים פעילים' : 'ללא מסננים'}</span>
+              </div>
+
+              <div className="rows-filter-grid">
+                {baseFilterFields.map((field) => (
+                  <label key={field.key} className="mini-field">
+                    <span>{field.label}</span>
+                    <input
+                      value={rowFilters?.[field.key] || ''}
+                      onChange={(e) => updateRowFilter(field.key, e.target.value)}
+                      placeholder={'סנן לפי ' + field.label}
+                    />
+                  </label>
+                ))}
+
+                {sortedCustomFields.map((field) => (
+                  <label key={field.id} className="mini-field">
+                    <span>{field.field_label}</span>
+                    <input
+                      value={rowFilters?.[field.field_key] || ''}
+                      onChange={(e) => updateRowFilter(field.field_key, e.target.value)}
+                      placeholder={'סנן לפי ' + field.field_label}
+                    />
+                  </label>
+                ))}
+
+                <label className="mini-field">
+                  <span>מיון לפי</span>
+                  <select value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
+                    {sortOptions.map((option) => (
+                      <option key={option.key} value={option.key}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="mini-field">
+                  <span>כיוון מיון</span>
+                  <select value={sortDir} onChange={(e) => setSortDir(e.target.value)}>
+                    <option value="asc">עולה / א׳ עד ת׳ / קטן לגדול</option>
+                    <option value="desc">יורד / ת׳ עד א׳ / גדול לקטן</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="filter-panel-actions">
+                <button type="button" className="secondary-btn" onClick={clearRowFilters}>
+                  נקה סינון ומיון
+                </button>
               </div>
             </div>
 

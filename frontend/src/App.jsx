@@ -85,7 +85,11 @@ export default function App() {
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
+  const [rowFilters, setRowFilters] = useState({});
+  const [sortKey, setSortKey] = useState('updated_at');
+  const [sortDir, setSortDir] = useState('desc');
   const debouncedSearch = useDebouncedValue(search, 250);
+  const debouncedRowFilters = useDebouncedValue(rowFilters, 250);
 
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
@@ -153,7 +157,10 @@ export default function App() {
         page,
         pageSize: rowsData.pageSize,
         search: debouncedSearch,
-        status
+        status,
+        filters: debouncedRowFilters,
+        sortKey,
+        sortDir
       });
       setRowsData(data);
       setError('');
@@ -181,7 +188,7 @@ export default function App() {
 
     setRowsData((prev) => ({ ...prev, page: 1 }));
     loadRows(route.projectId, 1);
-  }, [route.page, route.projectId, debouncedSearch, status, refreshKey, user]);
+  }, [route.page, route.projectId, debouncedSearch, status, debouncedRowFilters, sortKey, sortDir, refreshKey, user]);
 
   function goToProjects() {
     window.location.hash = '/projects';
@@ -430,6 +437,12 @@ export default function App() {
           setSearch={setSearch}
           status={status}
           setStatus={setStatus}
+          rowFilters={rowFilters}
+          setRowFilters={setRowFilters}
+          sortKey={sortKey}
+          setSortKey={setSortKey}
+          sortDir={sortDir}
+          setSortDir={setSortDir}
           form={form}
           setForm={setForm}
           editingRowId={editingRowId}

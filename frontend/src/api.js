@@ -140,10 +140,19 @@ export const api = {
       method: 'DELETE'
     }),
 
-  getRows: ({ projectId, page, pageSize, search, status }) =>
-    request(
-      `/api/projects/${projectId}/rows?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(search || '')}&status=${encodeURIComponent(status || '')}`
-    ),
+  getRows: ({ projectId, page, pageSize, search, status, filters = {}, sortKey = 'updated_at', sortDir = 'desc' }) => {
+    const params = new URLSearchParams({
+      page: String(page || 1),
+      pageSize: String(pageSize || 100),
+      search: search || '',
+      status: status || '',
+      filters: JSON.stringify(filters || {}),
+      sortKey: sortKey || 'updated_at',
+      sortDir: sortDir || 'desc'
+    });
+
+    return request(`/api/projects/${projectId}/rows?${params.toString()}`);
+  },
 
   createRow: (projectId, payload) =>
     request(`/api/projects/${projectId}/rows`, {
