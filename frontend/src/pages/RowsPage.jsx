@@ -107,6 +107,17 @@ export default function RowsPage({
     }));
   }
 
+  function renderSortableHeader(fieldKey, label) {
+    return (
+      <th onClick={() => handleSort(fieldKey)} style={{ cursor: 'pointer' }}>
+        {label}{' '}
+        {sortConfig.key === fieldKey
+          ? (sortConfig.direction === 'asc' ? '▲' : '▼')
+          : '↕'}
+      </th>
+    );
+  }
+
   function updateCustomField(fieldKey, value) {
     setForm((prev) => ({
       ...prev,
@@ -459,13 +470,15 @@ export default function RowsPage({
                     <th onClick={() => handleSort('branch_number')}>מספר סניף {sortConfig.key === 'branch_number' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
                     <th onClick={() => handleSort('position_number')}>מספר עמדה {sortConfig.key === 'position_number' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
                     <th onClick={() => handleSort('serial_number')}>מספר סידורי {sortConfig.key === 'serial_number' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}</th>
-                    <th>שם מתקין</th>
-                    <th>תאריך יעד</th>
-                    <th>תאריך ביצוע</th>
+                    {renderSortableHeader('installer_name', 'שם מתקין')}
+                    {renderSortableHeader('target_date', 'תאריך יעד')}
+                    {renderSortableHeader('completed_date', 'תאריך ביצוע')}
                     {sortedCustomFields.map((field) => (
-                      <th key={field.id}>{field.field_label}</th>
+                      <th key={field.id} onClick={() => handleSort(field.field_key)} style={{ cursor: 'pointer' }}>
+                        {field.field_label} {sortConfig.key === field.field_key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '↕'}
+                      </th>
                     ))}
-                    <th>סטטוס</th>
+                    {renderSortableHeader('status_label', 'סטטוס')}
                     <th>פעולות</th>
                   </tr>
                 </thead>
