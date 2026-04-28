@@ -7,9 +7,22 @@ async function init() {
       id SERIAL PRIMARY KEY,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
+      twofa_secret TEXT,
+      twofa_enabled BOOLEAN NOT NULL DEFAULT false,
       role TEXT NOT NULL DEFAULT 'manager' CHECK (role IN ('admin', 'manager')),
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
+  `);
+
+
+  await query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS twofa_secret TEXT;
+  `);
+
+  await query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS twofa_enabled BOOLEAN NOT NULL DEFAULT false;
   `);
 
   await query(`

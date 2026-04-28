@@ -2,16 +2,11 @@ const rawBase = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 const API_BASE = rawBase.replace(/\/$/, '');
 
 function buildAuthHeaders() {
-  try {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!user?.id || !user?.role) return {};
-    return {
-      'x-user-id': String(user.id),
-      'x-user-role': String(user.role)
-    };
-  } catch {
-    return {};
-  }
+  const token = localStorage.getItem('token');
+  if (!token) return {};
+  return {
+    Authorization: `Bearer ${token}`
+  };
 }
 
 async function request(path, options = {}) {
@@ -46,11 +41,18 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  login: (payload) =>
-    request('/api/login', {
+  login: async (payload) => {
+    const result = await request('/api/login', {
       method: 'POST',
       body: JSON.stringify(payload)
-    }),
+    });
+
+    if (result.token) {
+      localStorage.setItem('token', result.token);
+    }
+
+    return result;
+  },
 
   getUsers: () => request('/api/users'),
   createUser: (payload) =>
@@ -71,6 +73,19 @@ export const api = {
   deleteUser: (id) =>
     request(`/api/users/${id}`, {
       method: 'DELETE'
+    }),
+  setupUser2FA: (id) =>
+    request(`/api/users/${id}/setup-2fa`, {
+      method: 'POST'
+    }),
+  enableUser2FA: (id, code) =>
+    request(`/api/users/${id}/enable-2fa`, {
+      method: 'POST',
+      body: JSON.stringify({ code })
+    }),
+  disableUser2FA: (id) =>
+    request(`/api/users/${id}/disable-2fa`, {
+      method: 'POST'
     }),
 
   getProjects: () => request('/api/projects'),

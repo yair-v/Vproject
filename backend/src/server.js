@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import multer from 'multer';
 import XLSX from 'xlsx';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import speakeasy from 'speakeasy';
+import QRCode from 'qrcode';
 import { query } from './db.js';
 import { normalizeStatus, statusLabel, toDbDate, toDisplayDate, todayDbDate } from './utils.js';
 
@@ -12,6 +15,7 @@ dotenv.config();
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 const PORT = process.env.PORT || 4000;
+const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_ME_IN_RENDER_ENV';
 
 const corsOriginRaw = (process.env.CORS_ORIGIN || '').trim();
 
@@ -78,10 +82,16 @@ function calcProgress(total, completed) {
 }
 
 function getAuthUser(req) {
-  const id = Number(req.header('x-user-id') || 0);
-  const role = req.header('x-user-role') || '';
-  if (!id || !role) return null;
-  return { id, role };
+  const authHeader = req.header('authorization') || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+
+  if (!token) return null;
+
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
 }
 
 function requireRole(allowedRoles = []) {
@@ -387,28 +397,162 @@ app.get('/health', async (_req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body || {};
+  const { username, password, code } = req.body || {};
+
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password required' });
   }
 
-  const result = await query(`SELECT * FROM users WHERE username = $1`, [String(username).trim()]);
+  const result = await query(
+    `SELECT id, username, password_hash, role, twofa_secret, twofa_enabled
+     FROM users
+     WHERE username = $1`,
+    [String(username).trim()]
+  );
+
   if (!result.rowCount) {
     return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים' });
   }
 
   const user = result.rows[0];
-  const isValid = await bcrypt.compare(String(password), user.password_hash);
+  const isValidPassword = await bcrypt.compare(String(password), user.password_hash);
 
-  if (!isValid) {
+  if (!isValidPassword) {
     return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים' });
   }
 
-  res.json({ id: user.id, username: user.username, role: user.role });
+  if (user.twofa_enabled) {
+    if (!code) {
+      return res.json({ requires2FA: true });
+    }
+
+    const verified = speakeasy.totp.verify({
+      secret: user.twofa_secret,
+      encoding: 'base32',
+      token: String(code).trim(),
+      window: 1
+    });
+
+    if (!verified) {
+      return res.status(401).json({ error: 'קוד 2FA שגוי' });
+    }
+  }
+
+  const token = jwt.sign(
+    {
+      id: user.id,
+      username: user.username,
+      role: user.role
+    },
+    JWT_SECRET,
+    { expiresIn: '12h' }
+  );
+
+  res.json({
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      twofa_enabled: Boolean(user.twofa_enabled)
+    }
+  });
+});
+
+app.post('/api/users/:id/setup-2fa', requireRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+
+  const userResult = await query(
+    `SELECT id, username FROM users WHERE id = $1`,
+    [id]
+  );
+
+  if (!userResult.rowCount) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const user = userResult.rows[0];
+  const secret = speakeasy.generateSecret({
+    name: `VProject (${user.username})`,
+    issuer: 'VProject'
+  });
+
+  await query(
+    `UPDATE users
+     SET twofa_secret = $1,
+         twofa_enabled = false
+     WHERE id = $2`,
+    [secret.base32, id]
+  );
+
+  const qr = await QRCode.toDataURL(secret.otpauth_url);
+
+  res.json({
+    qr,
+    secret: secret.base32
+  });
+});
+
+app.post('/api/users/:id/enable-2fa', requireRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+  const { code } = req.body || {};
+
+  if (!code) {
+    return res.status(400).json({ error: 'קוד 2FA חובה' });
+  }
+
+  const result = await query(
+    `SELECT id, twofa_secret FROM users WHERE id = $1`,
+    [id]
+  );
+
+  if (!result.rowCount) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const user = result.rows[0];
+
+  if (!user.twofa_secret) {
+    return res.status(400).json({ error: 'יש לבצע setup ל-2FA קודם' });
+  }
+
+  const verified = speakeasy.totp.verify({
+    secret: user.twofa_secret,
+    encoding: 'base32',
+    token: String(code).trim(),
+    window: 1
+  });
+
+  if (!verified) {
+    return res.status(400).json({ error: 'קוד 2FA שגוי' });
+  }
+
+  await query(
+    `UPDATE users
+     SET twofa_enabled = true
+     WHERE id = $1`,
+    [id]
+  );
+
+  res.json({ success: true });
+});
+
+app.post('/api/users/:id/disable-2fa', requireRole(['admin']), async (req, res) => {
+  const { id } = req.params;
+
+  await query(
+    `UPDATE users
+     SET twofa_enabled = false,
+         twofa_secret = NULL
+     WHERE id = $1`,
+    [id]
+  );
+
+  res.json({ success: true });
 });
 
 app.get('/api/users', requireRole(['admin']), async (_req, res) => {
-  const result = await query(`SELECT id, username, role, created_at FROM users ORDER BY id DESC`);
+  const result = await query(`SELECT id, username, role, twofa_enabled, created_at FROM users ORDER BY id DESC`);
   res.json(result.rows);
 });
 
