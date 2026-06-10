@@ -36,28 +36,6 @@ function parseHash() {
   return { page: 'login', projectId: null };
 }
 
-
-function PopupNotifications({ items, onClose }) {
-  return (
-    <div className="popup-notifications" dir="rtl" aria-live="polite">
-      {items.map((item) => (
-        <div key={item.id} className={`popup-notification popup-${item.type || 'info'}`}>
-          <div className="popup-notification-icon">
-            {item.type === 'error' ? '!' : item.type === 'success' ? '✓' : 'i'}
-          </div>
-          <div className="popup-notification-body">
-            <strong>{item.title || (item.type === 'error' ? 'שגיאה' : 'התראה')}</strong>
-            <span>{item.message}</span>
-          </div>
-          <button type="button" className="popup-notification-close" onClick={() => onClose(item.id)}>
-            ×
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function EMPTY_FORM() {
   return {
     customer_name: '',
@@ -75,7 +53,6 @@ function EMPTY_FORM() {
 
 export default function App() {
   const [route, setRoute] = useState(parseHash());
-  const [popupNotifications, setPopupNotifications] = useState([]);
 
   const [user, setUser] = useState(() => {
     try {
@@ -120,41 +97,6 @@ export default function App() {
     () => projects.find((project) => project.id === route.projectId) || null,
     [projects, route.projectId]
   );
-
-  function closePopupNotification(id) {
-    setPopupNotifications((prev) => prev.filter((item) => item.id !== id));
-  }
-
-  function showPopupNotification(message, type = 'info', title = '') {
-    if (!message) return;
-    const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    setPopupNotifications((prev) => [...prev.slice(-3), { id, message: String(message), type, title }]);
-    window.setTimeout(() => {
-      setPopupNotifications((prev) => prev.filter((item) => item.id !== id));
-    }, 4500);
-  }
-
-  useEffect(() => {
-    const nativeAlert = window.alert;
-    window.alert = (message) => showPopupNotification(message, 'info', 'התראה');
-
-    function handlePopupNotify(event) {
-      const detail = event.detail || {};
-      showPopupNotification(detail.message, detail.type || 'info', detail.title || '');
-    }
-
-    window.addEventListener('app:notify', handlePopupNotify);
-
-    return () => {
-      window.alert = nativeAlert;
-      window.removeEventListener('app:notify', handlePopupNotify);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (error) showPopupNotification(error, 'error', 'שגיאה');
-  }, [error]);
-
 
   useEffect(() => {
     function handleHashChange() {
@@ -446,9 +388,6 @@ export default function App() {
     />
   );
 
-  const popupHost = <PopupNotifications items={popupNotifications} onClose={closePopupNotification} />;
-
-
   if (route.page === 'settings') {
     return (
       <>
@@ -460,7 +399,6 @@ export default function App() {
           setDisplaySettings={setDisplaySettings}
         />
         {floatingMenu}
-        {popupHost}
       </>
     );
   }
@@ -474,7 +412,6 @@ export default function App() {
           onBack={() => goToProjectRows(route.projectId)}
         />
         {floatingMenu}
-        {popupHost}
       </>
     );
   }
@@ -514,7 +451,6 @@ export default function App() {
           user={user}
         />
         {floatingMenu}
-        {popupHost}
       </>
     );
   }
@@ -537,7 +473,6 @@ export default function App() {
           user={user}
         />
         {floatingMenu}
-        {popupHost}
       </>
     );
   }
