@@ -2092,3 +2092,93 @@ table thead th {
     grid-template-columns: 1fr !important;
   }
 }
+
+
+/* Popup notifications */
+.popup-notifications {
+  position: fixed;
+  top: 22px;
+  left: 22px;
+  z-index: 99999;
+  display: grid;
+  gap: 12px;
+  width: min(420px, calc(100vw - 44px));
+  pointer-events: none;
+}
+
+.popup-notification {
+  pointer-events: auto;
+  display: grid;
+  grid-template-columns: 36px 1fr 30px;
+  align-items: start;
+  gap: 12px;
+  padding: 14px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.18);
+  color: #0f172a;
+  animation: popupNotificationIn 0.2s ease-out;
+  backdrop-filter: blur(14px);
+}
+
+.popup-notification-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.popup-error .popup-notification-icon {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.popup-success .popup-notification-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.popup-notification-body {
+  display: grid;
+  gap: 4px;
+  line-height: 1.35;
+}
+
+.popup-notification-body strong {
+  font-size: 14px;
+}
+
+.popup-notification-body span {
+  font-size: 13px;
+  color: #475569;
+  word-break: break-word;
+}
+
+.popup-notification-close {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(226, 232, 240, 0.75);
+  color: #334155;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+@keyframes popupNotificationIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
