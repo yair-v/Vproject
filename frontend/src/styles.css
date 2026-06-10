@@ -2099,10 +2099,15 @@ table thead th {
 .error-box,
 .success-box {
   position: fixed !important;
-  top: 22px !important;
-  right: 50% !important;
-  transform: translateX(50%) !important;
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translate(-50%, -50%) !important;
   width: min(520px, calc(100vw - 32px)) !important;
+  min-height: 86px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   margin: 0 !important;
   z-index: 99999 !important;
   border-radius: 18px !important;
@@ -2114,8 +2119,8 @@ table thead th {
   font-size: 14px !important;
   line-height: 1.55 !important;
   text-align: center !important;
-  pointer-events: none !important;
-  animation: popupToastIn 180ms ease-out both !important;
+  pointer-events: auto !important;
+  animation: centerPopupIn 180ms ease-out both !important;
 }
 
 .error-box {
@@ -2148,5 +2153,39 @@ table thead th {
   to {
     opacity: 1;
     transform: translateX(50%) translateY(0) scale(1);
+  }
+}
+
+
+/* CENTER SCREEN POPUP OVERRIDE */
+.error-box,
+.success-box {
+  top: 50% !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  width: min(540px, calc(100vw - 32px)) !important;
+  min-height: 92px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 22px 24px !important;
+  text-align: center !important;
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 26px 80px rgba(15, 23, 42, 0.28) !important;
+  animation: centerPopupIn 180ms ease-out both !important;
+}
+
+@keyframes centerPopupIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
