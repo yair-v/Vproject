@@ -51,40 +51,6 @@ function EMPTY_FORM() {
   };
 }
 
-
-function AppNotificationModal({ message, onClose }) {
-  useEffect(() => {
-    if (!message) return undefined;
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape' || event.key === 'Enter') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [message, onClose]);
-
-  if (!message) return null;
-
-  return (
-    <div className="app-modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <div
-        className="app-modal-dialog app-modal-error"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="app-modal-title"
-        aria-describedby="app-modal-message"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <div className="app-modal-icon">⚠️</div>
-        <h2 id="app-modal-title">שגיאה</h2>
-        <p id="app-modal-message">{message}</p>
-        <button type="button" className="app-modal-ok-btn" autoFocus onClick={onClose}>
-          אישור
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function App() {
   const [route, setRoute] = useState(parseHash());
 
@@ -115,6 +81,7 @@ export default function App() {
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [loadingRows, setLoadingRows] = useState(false);
   const [error, setError] = useState('');
+  const [modalError, setModalError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [search, setSearch] = useState('');
@@ -152,6 +119,25 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', displaySettings.theme);
     document.documentElement.style.zoom = `${displaySettings.zoom}%`;
   }, [displaySettings]);
+
+
+  useEffect(() => {
+    if (error) setModalError(error);
+  }, [error]);
+
+  function closeErrorPopup() {
+    setModalError('');
+    setError('');
+  }
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (!modalError) return;
+      if (event.key === 'Escape' || event.key === 'Enter') closeErrorPopup();
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [modalError]);
 
   useEffect(() => {
     if (!user) {
@@ -411,10 +397,6 @@ export default function App() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  const notificationModal = (
-    <AppNotificationModal message={error} onClose={() => setError('')} />
-  );
-
   const floatingMenu = (
     <FloatingMenu
       user={user}
@@ -426,6 +408,27 @@ export default function App() {
     />
   );
 
+
+  const errorPopup = modalError ? (
+    <div className="app-modal-overlay" role="presentation" onMouseDown={closeErrorPopup}>
+      <div
+        className="app-modal-box app-modal-error"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="app-modal-title"
+        aria-describedby="app-modal-message"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="app-modal-icon">!</div>
+        <h2 id="app-modal-title">שגיאה</h2>
+        <p id="app-modal-message">{modalError}</p>
+        <button type="button" className="primary-btn app-modal-confirm" autoFocus onClick={closeErrorPopup}>
+          אישור
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   if (route.page === 'settings') {
     return (
       <>
@@ -436,8 +439,8 @@ export default function App() {
           displaySettings={displaySettings}
           setDisplaySettings={setDisplaySettings}
         />
+        {errorPopup}
         {floatingMenu}
-        {notificationModal}
       </>
     );
   }
@@ -450,8 +453,8 @@ export default function App() {
           projectName={selectedProject?.name || ''}
           onBack={() => goToProjectRows(route.projectId)}
         />
+        {errorPopup}
         {floatingMenu}
-        {notificationModal}
       </>
     );
   }
@@ -465,7 +468,7 @@ export default function App() {
           rowsData={rowsData}
           loadingRows={loadingRows}
           loadingProjects={loadingProjects}
-          error={error}
+          error=""
           search={search}
           setSearch={setSearch}
           status={status}
@@ -490,8 +493,8 @@ export default function App() {
           openSettings={goToSettings}
           user={user}
         />
+        {errorPopup}
         {floatingMenu}
-        {notificationModal}
       </>
     );
   }
@@ -502,7 +505,7 @@ export default function App() {
         <ProjectsPage
           projects={projects}
           loadingProjects={loadingProjects}
-          error={error}
+          error=""
           projectName={projectName}
           setProjectName={setProjectName}
           projectDescription={projectDescription}
@@ -513,8 +516,8 @@ export default function App() {
           deleteProject={removeProject}
           user={user}
         />
+        {errorPopup}
         {floatingMenu}
-        {notificationModal}
       </>
     );
   }
@@ -524,14 +527,14 @@ export default function App() {
       <DashboardPage
         projects={projects}
         loadingProjects={loadingProjects}
-        error={error}
+        error=""
         openProjectsPage={goToProjects}
         openProjectRows={goToProjectRows}
         openSettings={goToSettings}
         user={user}
       />
+      {errorPopup}
       {floatingMenu}
-      {notificationModal}
     </>
   );
 }

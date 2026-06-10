@@ -831,6 +831,8 @@ export default function RowsPage({
                 )}
               </div>
             </form>
+
+            {error && <div className="error-box">{error}</div>}
           </section>
           )}
 
