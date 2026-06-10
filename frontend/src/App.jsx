@@ -51,6 +51,40 @@ function EMPTY_FORM() {
   };
 }
 
+
+function AppNotificationModal({ message, onClose }) {
+  useEffect(() => {
+    if (!message) return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' || event.key === 'Enter') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [message, onClose]);
+
+  if (!message) return null;
+
+  return (
+    <div className="app-modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <div
+        className="app-modal-dialog app-modal-error"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="app-modal-title"
+        aria-describedby="app-modal-message"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="app-modal-icon">⚠️</div>
+        <h2 id="app-modal-title">שגיאה</h2>
+        <p id="app-modal-message">{message}</p>
+        <button type="button" className="app-modal-ok-btn" autoFocus onClick={onClose}>
+          אישור
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [route, setRoute] = useState(parseHash());
 
@@ -377,6 +411,10 @@ export default function App() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
+  const notificationModal = (
+    <AppNotificationModal message={error} onClose={() => setError('')} />
+  );
+
   const floatingMenu = (
     <FloatingMenu
       user={user}
@@ -399,6 +437,7 @@ export default function App() {
           setDisplaySettings={setDisplaySettings}
         />
         {floatingMenu}
+        {notificationModal}
       </>
     );
   }
@@ -412,6 +451,7 @@ export default function App() {
           onBack={() => goToProjectRows(route.projectId)}
         />
         {floatingMenu}
+        {notificationModal}
       </>
     );
   }
@@ -451,6 +491,7 @@ export default function App() {
           user={user}
         />
         {floatingMenu}
+        {notificationModal}
       </>
     );
   }
@@ -473,6 +514,7 @@ export default function App() {
           user={user}
         />
         {floatingMenu}
+        {notificationModal}
       </>
     );
   }
@@ -489,6 +531,7 @@ export default function App() {
         user={user}
       />
       {floatingMenu}
+      {notificationModal}
     </>
   );
 }

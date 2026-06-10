@@ -2094,98 +2094,85 @@ table thead th {
 }
 
 /* =========================================================
-   POPUP NOTIFICATIONS - replace inline red/green messages
+   CENTER SCREEN POPUP NOTIFICATIONS
+   Real modal popup with overlay and acknowledge button.
    ========================================================= */
-.error-box,
-.success-box {
+.app-modal-backdrop {
   position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  right: auto !important;
-  transform: translate(-50%, -50%) !important;
-  width: min(520px, calc(100vw - 32px)) !important;
-  min-height: 86px !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  margin: 0 !important;
-  z-index: 99999 !important;
+  padding: 24px !important;
+  background: rgba(8, 18, 34, 0.48) !important;
+  backdrop-filter: blur(5px) !important;
+  direction: rtl !important;
+}
+
+.app-modal-dialog {
+  width: min(440px, calc(100vw - 40px)) !important;
+  min-height: 230px !important;
+  padding: 28px 30px 24px !important;
+  border-radius: 28px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(255, 120, 120, 0.35) !important;
+  box-shadow: 0 26px 90px rgba(2, 15, 36, 0.28) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 14px !important;
+  animation: appModalIn 160ms ease-out !important;
+}
+
+.app-modal-icon {
+  width: 54px !important;
+  height: 54px !important;
   border-radius: 18px !important;
-  padding: 16px 18px !important;
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  font-weight: 800 !important;
-  font-size: 14px !important;
-  line-height: 1.55 !important;
-  text-align: center !important;
-  pointer-events: auto !important;
-  animation: centerPopupIn 180ms ease-out both !important;
-}
-
-.error-box {
-  background: rgba(255, 245, 246, 0.96) !important;
-  color: #b4232d !important;
-  border: 1px solid rgba(244, 63, 94, 0.35) !important;
-}
-
-.error-box::before {
-  content: '⚠️';
-  margin-inline-end: 8px;
-}
-
-.success-box {
-  background: rgba(239, 253, 246, 0.96) !important;
-  color: #047857 !important;
-  border: 1px solid rgba(16, 185, 129, 0.35) !important;
-}
-
-.success-box::before {
-  content: '✅';
-  margin-inline-end: 8px;
-}
-
-@keyframes popupToastIn {
-  from {
-    opacity: 0;
-    transform: translateX(50%) translateY(-12px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(50%) translateY(0) scale(1);
-  }
-}
-
-
-/* CENTER SCREEN POPUP OVERRIDE */
-.error-box,
-.success-box {
-  top: 50% !important;
-  left: 50% !important;
-  right: auto !important;
-  bottom: auto !important;
-  transform: translate(-50%, -50%) !important;
-  width: min(540px, calc(100vw - 32px)) !important;
-  min-height: 92px !important;
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 22px 24px !important;
-  text-align: center !important;
-  font-size: 16px !important;
-  line-height: 1.6 !important;
-  border-radius: 22px !important;
-  box-shadow: 0 26px 80px rgba(15, 23, 42, 0.28) !important;
-  animation: centerPopupIn 180ms ease-out both !important;
+  background: #fff4d8 !important;
+  font-size: 26px !important;
 }
 
-@keyframes centerPopupIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -48%) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+.app-modal-dialog h2 {
+  margin: 0 !important;
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  color: #12213a !important;
+}
+
+.app-modal-dialog p {
+  margin: 0 !important;
+  max-width: 360px !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.65 !important;
+  color: #263954 !important;
+}
+
+.app-modal-ok-btn {
+  margin-top: 8px !important;
+  width: 150px !important;
+  height: 44px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #2f7df6, #55a6ff) !important;
+  color: white !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  box-shadow: 0 14px 28px rgba(47, 125, 246, 0.28) !important;
+}
+
+.app-modal-ok-btn:hover {
+  transform: translateY(-1px) !important;
+}
+
+@keyframes appModalIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
